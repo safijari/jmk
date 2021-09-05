@@ -70,8 +70,8 @@ class Key:
 
 
 # The pins we'll use, each will have an internal pullup
-row_pin_names = [board.GP0]
-col_pin_names = [board.GP2]
+row_pin_names = [board.GP2, board.GP3]
+col_pin_names = [board.GP0, board.GP1]
 # columns are inputs?
 
 row_pins = []
@@ -103,12 +103,14 @@ print("loop starting")
 
 while True:
     # Check each pin
-    for row in row_pins:
+    for row, row_name in zip(row_pins, row_pin_names):
         row.value = False
-        for col in col_pins:
+        for col, col_name in zip(col_pins, col_pin_names):
             # tim = time.monotonic_ns() - prev_time
             # print(col.value)
-            k.update(not col.value)
+            # k.update(not col.value)
+            if not col.value:
+                print(row_name, col_name)
             prev_time = time.monotonic_ns()
         row.value = True
 
