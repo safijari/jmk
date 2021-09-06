@@ -70,20 +70,31 @@ class Key:
 
 
 # The pins we'll use, each will have an internal pullup
-row_pin_names = [board.GP2, board.GP3]
-col_pin_names = [board.GP0, board.GP1]
+row_pin_map = {
+    1: board.GP14,
+    2: board.GP15,
+    3: board.GP12,
+    4: board.GP10,
+}
+col_pin_map = {1: board.GP4,
+                 2: board.GP3,
+                 3: board.GP5,
+                 4: board.GP6,
+                 5: board.GP7,
+                 6: board.GP9}
+print(row_pin_map)
 # columns are inputs?
 
 row_pins = []
 col_pins = []
 
-for pin in col_pin_names:
+for idx, pin in col_pin_map.items():
     key_pin = digitalio.DigitalInOut(pin)
     key_pin.direction = digitalio.Direction.INPUT
     key_pin.pull = digitalio.Pull.UP
     col_pins.append(key_pin)
 
-for pin in row_pin_names:
+for idx, pin in row_pin_map.items():
     key_pin = digitalio.DigitalInOut(pin)
     key_pin.direction = digitalio.Direction.OUTPUT
     key_pin.value = True
@@ -103,9 +114,9 @@ print("loop starting")
 
 while True:
     # Check each pin
-    for row, row_name in zip(row_pins, row_pin_names):
+    for row, (row_idx, row_name) in zip(row_pins, row_pin_map.items()):
         row.value = False
-        for col, col_name in zip(col_pins, col_pin_names):
+        for col, (col_idx, col_name) in zip(col_pins, col_pin_map.items()):
             # tim = time.monotonic_ns() - prev_time
             # print(col.value)
             # k.update(not col.value)
