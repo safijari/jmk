@@ -1,12 +1,33 @@
 import time
 import board
 import digitalio
-from state_machine import StateMachine, StartState, WaitState, KeyPressState, KeyTapState
+from state_machine import (
+    StateMachine,
+    StartState,
+    WaitState,
+    KeyPressState,
+    KeyTapState,
+)
 
 import usb_hid
 from adafruit_hid.keyboard import Keyboard
 from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
 from adafruit_hid.keycode import Keycode
+
+
+class PlainJaneKey:
+    def __init__(self, kb, kc):
+        self.kb = kb
+        self.kc = kc  # keycode?
+
+        ss = StartState("Start", None)
+        kpb = KeyPressState("Press " + str(kc), self.kb, self.kc, ss)
+        ss.next_state = kpb
+
+        self.sm = StateMachine([ss, kpb])
+
+    def update(self, val):
+        self.sm.update(val)
 
 
 class Key:
@@ -76,14 +97,14 @@ row_pin_map = {
     3: board.GP12,
     4: board.GP10,
 }
-col_pin_map = {1: board.GP4,
-                 2: board.GP3,
-                 3: board.GP5,
-                 4: board.GP6,
-                 5: board.GP7,
-                 6: board.GP9}
-print(row_pin_map)
-# columns are inputs?
+col_pin_map = {
+    1: board.GP4,
+    2: board.GP3,
+    3: board.GP5,
+    4: board.GP6,
+    5: board.GP7,
+    6: board.GP9,
+}
 
 row_pins = []
 col_pins = []
@@ -110,19 +131,56 @@ keyboard_layout = KeyboardLayoutUS(keyboard)  # We're in the US :)
 
 k = Key(keyboard)
 
+kc = Keycode
+
+
+def mk(kc):
+    return PlainJaneKey(keyboard, kc)
+
+
+layout_right = {
+    1: {
+        1: mk(kc.BACKSLASH),
+        2: mk(kc.P),
+        3: mk(kc.O),
+        4: mk(kc.I),
+        5: mk(kc.U),
+        6: mk(kc.Y),
+    },
+    2: {1: mk(kc.QUOTE), 2: mk(kc.SEMICOLON)},
+    # 3: {1: "'", 2: ";", 3: "l", 4: "k", 5: "j", 6: "h",},
+    # 4: {1: "KEY_RIGHT_SHIFT", 2: "/", 3: ".", 4: ",", 5: "m", 6: "n",},
+    # 5: {1: "LAYER", 2: "]", 3: "[", 4: "NO_OP", 5: "NO_OP",},
+    # 6: {5: " ", 6: "KEY_RIGHT_CTRL",},
+    # 7: {5: "LAYER", 6: "KEY_RIGHT_GUI",},
+    # 8: {5: "KEY_RETURN", 6: "KEY_RIGHT_ALT",},
+}
+
 print("loop starting")
+
+counter = 0
+prev_time = time.monotonic()
 
 while True:
     # Check each pin
     for row, (row_idx, row_name) in zip(row_pins, row_pin_map.items()):
         row.value = False
+        col_layout = layout_right.get(row_idx, {})
         for col, (col_idx, col_name) in zip(col_pins, col_pin_map.items()):
             # tim = time.monotonic_ns() - prev_time
             # print(col.value)
             # k.update(not col.value)
-            if not col.value:
+
+            out = not col.value
+            sm = col_layout.get(col_idx, None)
+            if out:
                 print(row_name, col_name)
-            prev_time = time.monotonic_ns()
+            if sm:
+                sm.update(out)
         row.value = True
 
-    time.sleep(0.0)
+    counter += 1
+
+    if counter % 100 == 0:
+        print(((time.monotonic() - prev_time)/100*1000))
+        prev_time = time.monotonic()

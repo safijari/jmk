@@ -1,2 +1,2 @@
 all:
-	cp * /media/jari/CIRCUITPY/
+	cp code.py /media/jari/CIRCUITPY/
