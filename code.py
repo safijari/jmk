@@ -30,10 +30,9 @@ class PlainJaneKey:
         self.sm.update(val)
 
 
-class Key:
-    def __init__(self, kb):
+class TapDance:
+    def __init__(self, kb, kc1, kc2):
         self.kb = kb
-        self.kc = Keycode.CONTROL  # keycode?
         # self.is_down = False
         # example of modtap
         # ss = StartState("Start", None)
@@ -44,12 +43,12 @@ class Key:
         # ss.next_state = ws
 
         ss = StartState("Start", None)
-        wait1 = WaitState("Wait1", 0.1, None, None)
-        kp = KeyTapState("Press A", self.kb, self.kc, ss)
-        kpp = KeyPressState("Press A", self.kb, self.kc, ss)
-        kp2 = KeyTapState("Press B", self.kb, Keycode.B, ss)
+        wait1 = WaitState("Wait1", 0.05, None, None)
+        kp = KeyTapState("Press A", self.kb, kc1, ss)
+        kpp = KeyPressState("Press A", self.kb, kc1, ss)
+        kp2 = KeyTapState("Press B", self.kb, kc2, ss)
         kp2p = KeyPressState("Press B", self.kb, [Keycode.CONTROL, Keycode.ALT], ss)
-        wait2 = WaitState("Wait2", 0.1, kp, None, inverted=True)
+        wait2 = WaitState("Wait2", 0.05, kp, None, inverted=True)
         wait3 = WaitState("Wait3", 0.1, None, None)
         wait4 = WaitState("Wait4", 0.1, kp2, None, inverted=True)
         wait1.fail_state = wait2
@@ -147,8 +146,8 @@ layout_right = {
         5: mk(kc.U),
         6: mk(kc.Y),
     },
-    2: {1: mk(kc.QUOTE), 2: mk(kc.SEMICOLON)},
-    # 3: {1: "'", 2: ";", 3: "l", 4: "k", 5: "j", 6: "h",},
+    2: {1: mk(kc.QUOTE), 2: mk(kc.SEMICOLON), 3: mk(kc.L), 4: mk(kc.K), 5: mk(kc.J), 6: mk(kc.H)},
+    3: {1: mk(kc.RIGHT_SHIFT), 2: mk(kc.FORWARD_SLASH), 3: mk(kc.L), 4: mk(kc.K), 5: mk(kc.J), 6: mk(kc.H)},
     # 4: {1: "KEY_RIGHT_SHIFT", 2: "/", 3: ".", 4: ",", 5: "m", 6: "n",},
     # 5: {1: "LAYER", 2: "]", 3: "[", 4: "NO_OP", 5: "NO_OP",},
     # 6: {5: " ", 6: "KEY_RIGHT_CTRL",},
@@ -181,6 +180,6 @@ while True:
 
     counter += 1
 
-    if counter % 100 == 0:
-        print(((time.monotonic() - prev_time)/100*1000))
-        prev_time = time.monotonic()
+    # if counter % 100 == 0:
+    #     print(((time.monotonic() - prev_time)/100*1000))
+    #     prev_time = time.monotonic()
