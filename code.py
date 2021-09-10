@@ -20,11 +20,14 @@ class PlainJaneKey:
         self.kb = kb
         self.kc = kc  # keycode?
 
-        ss = StartState("Start", None)
-        kpb = KeyPressState("Press " + str(kc), self.kb, self.kc, ss)
-        ss.next_state = kpb
-
-        self.sm = StateMachine([ss, kpb])
+        self.sm = StateMachine(
+            {
+                "start": StartState("Start", "key_press"),
+                "key_press": KeyPressState(
+                    "Press " + str(kc), self.kb, self.kc, "start"
+                ),
+            }
+        )
 
     def update(self, val):
         self.sm.update(val)
@@ -42,23 +45,25 @@ class TapDance:
         # ws = WaitState("Wait", 5 / 1000, wst, ss)
         # ss.next_state = ws
 
-        ss = StartState("Start", None)
-        wait1 = WaitState("Wait1", 0.05, None, None)
-        kp = KeyTapState("Press A", self.kb, kc1, ss)
-        kpp = KeyPressState("Press A", self.kb, kc1, ss)
-        kp2 = KeyTapState("Press B", self.kb, kc2, ss)
-        kp2p = KeyPressState("Press B", self.kb, [Keycode.CONTROL, Keycode.ALT], ss)
-        wait2 = WaitState("Wait2", 0.05, kp, None, inverted=True)
-        wait3 = WaitState("Wait3", 0.1, None, None)
-        wait4 = WaitState("Wait4", 0.1, kp2, None, inverted=True)
-        wait1.fail_state = wait2
-        wait1.success_state = kpp
-        wait2.fail_state = wait3
-        wait3.fail_state = wait4
-        wait3.success_state = kp2p
-        ss.next_state = wait1
+        T = 0.1
 
-        self.sm = StateMachine([ss, wait1, kp, wait2, wait3, wait4, kp2])
+        self.sm = StateMachine(
+            {
+                "start": StartState("Start", "act1wait"),
+                "act1wait": WaitState("Act1Wait1", T, "act1press", "act1tapwait"),
+                "act1tapwait": WaitState(
+                    "Act1Wait2", T, "act1tap", "act2wait", inverted=True
+                ),
+                "act1press": KeyPressState("Act1Press", kb, kc1, "start"),
+                "act1tap": KeyTapState("Act1Tap", kb, kc1, "start"),
+                "act2wait": WaitState("Act2Wait1", T, "act2press", "act2tapwait"),
+                "act2tapwait": WaitState(
+                    "Act2Wait2", T, "act2tap", "start", inverted=True
+                ),
+                "act2press": KeyPressState("Act2Press", kb, kc2, "start"),
+                "act2tap": KeyTapState("Act2Tap", kb, kc2, "start"),
+            }
+        )
 
     # def on_down(self):
     #     print(time.monotonic_ns(), "key down")
@@ -128,8 +133,6 @@ time.sleep(1)  # Sleep for a bit to avoid a race condition on some systems
 keyboard = Keyboard(usb_hid.devices)
 keyboard_layout = KeyboardLayoutUS(keyboard)  # We're in the US :)
 
-k = Key(keyboard)
-
 kc = Keycode
 
 
@@ -146,8 +149,22 @@ layout_right = {
         5: mk(kc.U),
         6: mk(kc.Y),
     },
-    2: {1: mk(kc.QUOTE), 2: mk(kc.SEMICOLON), 3: mk(kc.L), 4: mk(kc.K), 5: mk(kc.J), 6: mk(kc.H)},
-    3: {1: mk(kc.RIGHT_SHIFT), 2: mk(kc.FORWARD_SLASH), 3: mk(kc.L), 4: mk(kc.K), 5: mk(kc.J), 6: mk(kc.H)},
+    2: {
+        1: mk(kc.QUOTE),
+        2: mk(kc.SEMICOLON),
+        3: mk(kc.L),
+        4: mk(kc.K),
+        5: mk(kc.J),
+        6: mk(kc.H),
+    },
+    3: {
+        1: TapDance(keyboard, kc.RIGHT_SHIFT, kc.CAPS_LOCK),
+        2: mk(kc.FORWARD_SLASH),
+        3: mk(kc.L),
+        4: mk(kc.K),
+        5: mk(kc.J),
+        6: mk(kc.H),
+    },
     # 4: {1: "KEY_RIGHT_SHIFT", 2: "/", 3: ".", 4: ",", 5: "m", 6: "n",},
     # 5: {1: "LAYER", 2: "]", 3: "[", 4: "NO_OP", 5: "NO_OP",},
     # 6: {5: " ", 6: "KEY_RIGHT_CTRL",},
@@ -172,14 +189,14 @@ while True:
 
             out = not col.value
             sm = col_layout.get(col_idx, None)
-            if out:
-                print(row_name, col_name)
+            # if out:
+            #     print(row_name, col_name)
             if sm:
                 sm.update(out)
         row.value = True
 
     counter += 1
 
-    # if counter % 100 == 0:
-    #     print(((time.monotonic() - prev_time)/100*1000))
-    #     prev_time = time.monotonic()
+    if counter % 100 == 0:
+        print(((time.monotonic() - prev_time)/100*1000))
+        prev_time = time.monotonic()
