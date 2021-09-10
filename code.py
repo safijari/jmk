@@ -18,6 +18,7 @@ import busio
 
 uart = busio.UART(board.GP16, board.GP17, baudrate=115200)
 
+
 class PlainJaneKey:
     def __init__(self, kb, kc):
         self.kb = kb
@@ -34,6 +35,7 @@ class PlainJaneKey:
 
     def update(self, val):
         self.sm.update(val)
+
 
 class ModTap:
     def __init__(self, kb, kc1, kc2):
@@ -54,14 +56,6 @@ class ModTap:
 class TapDance:
     def __init__(self, kb, kc1, kc2):
         self.kb = kb
-        # self.is_down = False
-        # example of modtap
-        # ss = StartState("Start", None)
-        # kp = KeyTapState("Press A", self.kb, self.kc, ss)
-        # kpb = KeyPressState("Press B", self.kb, Keycode.B, ss)
-        # wst = WaitState("Wait", 0.1, kpb, kp)
-        # ws = WaitState("Wait", 5 / 1000, wst, ss)
-        # ss.next_state = ws
 
         T = 0.1
 
@@ -83,33 +77,8 @@ class TapDance:
             }
         )
 
-    # def on_down(self):
-    #     print(time.monotonic_ns(), "key down")
-
-    # def on_up(self):
-    #     print(time.monotonic_ns(), "key up")
-
     def update(self, val):
         self.sm.update(val)
-        # if val is True:
-        #     self.downed()
-        # if val is False:
-        #     self.upped()
-
-    # def downed(self):
-    #     # print("downed called")
-    #     if self.is_down:
-    #         return
-    #     self.is_down = True
-    #     self.on_down()
-
-    # def upped(self):
-    #     # print("upped called")
-    #     if not self.is_down:
-    #         return
-    #     if self.is_down:
-    #         self.is_down = False
-    #         self.on_up()
 
 
 # The pins we'll use, each will have an internal pullup
@@ -177,50 +146,44 @@ layout_right = {
         6: mk(kc.H),
     },
     3: {
-        1: TapDance(keyboard, kc.RIGHT_SHIFT, kc.CAPS_LOCK),
+        # 1: TapDance(keyboard, kc.RIGHT_SHIFT, kc.CAPS_LOCK),
+        1: mk(kc.RIGHT_SHIFT),
         2: mk(kc.FORWARD_SLASH),
-        3: mk(kc.L),
-        4: mk(kc.K),
-        5: mk(kc.J),
-        6: mk(kc.H),
+        3: mk(kc.PERIOD),
+        4: mk(kc.COMMA),
+        5: mk(kc.M),
+        6: mk(kc.N),
     },
-    # 4: {1: "KEY_RIGHT_SHIFT", 2: "/", 3: ".", 4: ",", 5: "m", 6: "n",},
-    # 5: {1: "LAYER", 2: "]", 3: "[", 4: "NO_OP", 5: "NO_OP",},
-    # 6: {5: " ", 6: "KEY_RIGHT_CTRL",},
-    # 7: {5: "LAYER", 6: "KEY_RIGHT_GUI",},
-    # 8: {5: "KEY_RETURN", 6: "KEY_RIGHT_ALT",},
+    4: {4: mk(kc.SPACE), 5: mk(kc.RIGHT_CONTROL), 6: mk(kc.RETURN)},
 }
 
 layout_left = {
     1: {
-        1: mk(kc.BACKSLASH),
-        2: mk(kc.P),
-        3: mk(kc.O),
-        4: mk(kc.I),
-        5: mk(kc.U),
-        6: mk(kc.Y),
+        1: mk(kc.EQUALS),
+        2: mk(kc.Q),
+        3: mk(kc.W),
+        4: mk(kc.E),
+        5: mk(kc.R),
+        6: mk(kc.T),
     },
     2: {
         1: ModTap(kb, kc.TAB, kc.LEFT_GUI),
-        2: mk(kc.SEMICOLON),
-        3: mk(kc.L),
-        4: mk(kc.K),
-        5: mk(kc.J),
-        6: mk(kc.H),
+        2: mk(kc.A),
+        3: mk(kc.S),
+        4: mk(kc.D),
+        5: mk(kc.F),
+        6: mk(kc.G),
     },
     3: {
-        1: TapDance(keyboard, kc.RIGHT_SHIFT, kc.CAPS_LOCK),
-        2: mk(kc.FORWARD_SLASH),
-        3: mk(kc.L),
-        4: mk(kc.K),
-        5: mk(kc.J),
-        6: mk(kc.H),
+        # 1: TapDance(keyboard, kc.LEFT_SHIFT, kc.CAPS_LOCK),
+        1: mk(kc.LEFT_SHIFT),
+        2: mk(kc.Z),
+        3: mk(kc.X),
+        4: mk(kc.C),
+        5: mk(kc.V),
+        6: mk(kc.B),
     },
-    # 4: {1: "KEY_RIGHT_SHIFT", 2: "/", 3: ".", 4: ",", 5: "m", 6: "n",},
-    # 5: {1: "LAYER", 2: "]", 3: "[", 4: "NO_OP", 5: "NO_OP",},
-    # 6: {5: " ", 6: "KEY_RIGHT_CTRL",},
-    # 7: {5: "LAYER", 6: "KEY_RIGHT_GUI",},
-    # 8: {5: "KEY_RETURN", 6: "KEY_RIGHT_ALT",},
+    4: {4: mk(kc.BACKSPACE), 5: mk(kc.RIGHT_CONTROL), 6: mk(kc.ESCAPE)},
 }
 
 print("loop starting")
@@ -264,6 +227,7 @@ while True:
 
     counter += 1
 
-    if counter % 100 == 0:
-        print(((time.monotonic() - prev_time)/100*1000))
+    iters = 10
+    if counter % iters == 0:
+        print(((time.monotonic() - prev_time) / iters * 1000))
         prev_time = time.monotonic()
