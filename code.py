@@ -14,6 +14,9 @@ from adafruit_hid.keyboard import Keyboard
 from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
 from adafruit_hid.keycode import Keycode
 
+import busio
+
+uart = busio.UART(board.GP16, board.GP17, baudrate=115200)
 
 class PlainJaneKey:
     def __init__(self, kb, kc):
@@ -172,6 +175,38 @@ layout_right = {
     # 8: {5: "KEY_RETURN", 6: "KEY_RIGHT_ALT",},
 }
 
+layout_left = {
+    1: {
+        1: mk(kc.BACKSLASH),
+        2: mk(kc.P),
+        3: mk(kc.O),
+        4: mk(kc.I),
+        5: mk(kc.U),
+        6: mk(kc.Y),
+    },
+    2: {
+        1: mk(kc.QUOTE),
+        2: mk(kc.SEMICOLON),
+        3: mk(kc.L),
+        4: mk(kc.K),
+        5: mk(kc.J),
+        6: mk(kc.H),
+    },
+    3: {
+        1: TapDance(keyboard, kc.RIGHT_SHIFT, kc.CAPS_LOCK),
+        2: mk(kc.FORWARD_SLASH),
+        3: mk(kc.L),
+        4: mk(kc.K),
+        5: mk(kc.J),
+        6: mk(kc.H),
+    },
+    # 4: {1: "KEY_RIGHT_SHIFT", 2: "/", 3: ".", 4: ",", 5: "m", 6: "n",},
+    # 5: {1: "LAYER", 2: "]", 3: "[", 4: "NO_OP", 5: "NO_OP",},
+    # 6: {5: " ", 6: "KEY_RIGHT_CTRL",},
+    # 7: {5: "LAYER", 6: "KEY_RIGHT_GUI",},
+    # 8: {5: "KEY_RETURN", 6: "KEY_RIGHT_ALT",},
+}
+
 print("loop starting")
 
 counter = 0
@@ -179,6 +214,11 @@ prev_time = time.monotonic()
 
 while True:
     # Check each pin
+    left_half_stuff = uart.readline()
+    if not left_half_stuff or len(left_half_stuff) != 25:
+        print("could not read left half, will retry")
+        continue
+    # print(left_half_stuff)
     for row, (row_idx, row_name) in zip(row_pins, row_pin_map.items()):
         row.value = False
         col_layout = layout_right.get(row_idx, {})
@@ -194,6 +234,17 @@ while True:
             if sm:
                 sm.update(out)
         row.value = True
+
+    j = 0
+    # print(chr(left_half_stuff[0]) == "0")
+    for row, (row_idx, row_name) in zip(row_pins, row_pin_map.items()):
+        col_layout = layout_left.get(row_idx, {})
+        for col, (col_idx, col_name) in zip(col_pins, col_pin_map.items()):
+            out = chr(left_half_stuff[j]) == "1"
+            sm = col_layout.get(col_idx, None)
+            if sm:
+                sm.update(out)
+            j += 1
 
     counter += 1
 

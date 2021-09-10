@@ -10,7 +10,7 @@ class StartState:
         pass
 
     def into(self, smap):
-        pass
+        return self
 
     def update(self, key_state, smap):
         if key_state == False:
@@ -41,7 +41,7 @@ class KeyPressState:
 
     def into(self, smap):
         self.reset()
-        self.update(True, smap)
+        return self.update(True, smap)
 
     def update(self, inp, smap):
         if inp and not self.is_pressed:
@@ -74,7 +74,7 @@ class KeyTapState:
 
     def into(self, smap):
         self.reset()
-        self.update(True, smap)
+        return self.update(True, smap)
 
     def update(self, inp, smap):
         self.kb.press(self.kc)
@@ -97,7 +97,7 @@ class WaitState:
 
     def into(self, smap):
         self.reset()
-        self.update(True, smap)
+        return self.update(True, smap)
 
     def update(self, inp, smap):
         if self.inverted:
@@ -120,6 +120,7 @@ class WaitState:
                 return smap[self.fail_state]
         else:
             print("wait else?")
+            return self
 
 
 class StateMachine:
@@ -135,10 +136,14 @@ class StateMachine:
     def update(self, inp):
         next_state = self.cur_state.update(inp, self.states)
 
-        if next_state != self.cur_state:
+        while next_state != self.cur_state:
+            print(next_state)
             print(f"State changed to {str(next_state)}")
             if next_state:
-                next_state.into(self.states)
+                self.cur_state = next_state
+                next_state = next_state.into(self.states)
+            else:
+                break
         self.cur_state = next_state
         if self.cur_state is None:
             print("machine died, rebooting")
