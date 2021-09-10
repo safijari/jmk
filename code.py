@@ -35,6 +35,21 @@ class PlainJaneKey:
     def update(self, val):
         self.sm.update(val)
 
+class ModTap:
+    def __init__(self, kb, kc1, kc2):
+        T = 0.1
+        self.sm = StateMachine(
+            {
+                "start": StartState("Start", "act1wait"),
+                "act1wait": WaitState("Act1Wait1", T, "act2press", "act1tap"),
+                "act1tap": KeyTapState("Act1Tap", kb, kc1, "start"),
+                "act2press": KeyPressState("Act2Press", kb, kc2, "start"),
+            }
+        )
+
+    def update(self, val):
+        self.sm.update(val)
+
 
 class TapDance:
     def __init__(self, kb, kc1, kc2):
@@ -137,6 +152,7 @@ keyboard = Keyboard(usb_hid.devices)
 keyboard_layout = KeyboardLayoutUS(keyboard)  # We're in the US :)
 
 kc = Keycode
+kb = keyboard
 
 
 def mk(kc):
@@ -185,7 +201,7 @@ layout_left = {
         6: mk(kc.Y),
     },
     2: {
-        1: mk(kc.QUOTE),
+        1: ModTap(kb, kc.TAB, kc.LEFT_GUI),
         2: mk(kc.SEMICOLON),
         3: mk(kc.L),
         4: mk(kc.K),
