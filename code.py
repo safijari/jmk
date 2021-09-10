@@ -197,19 +197,12 @@ while True:
     if not left_half_stuff or len(left_half_stuff) != 25:
         print("could not read left half, will retry")
         continue
-    # print(left_half_stuff)
     for row, (row_idx, row_name) in zip(row_pins, row_pin_map.items()):
         row.value = False
         col_layout = layout_right.get(row_idx, {})
         for col, (col_idx, col_name) in zip(col_pins, col_pin_map.items()):
-            # tim = time.monotonic_ns() - prev_time
-            # print(col.value)
-            # k.update(not col.value)
-
             out = not col.value
             sm = col_layout.get(col_idx, None)
-            # if out:
-            #     print(row_name, col_name)
             if sm:
                 sm.update(out)
         row.value = True
