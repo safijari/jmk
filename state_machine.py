@@ -19,7 +19,7 @@ class StartState:
         if key_state == False:
             return self
         else:
-            print("transitioning to next state from " + self.name)
+            # print("transitioning to next state from " + self.name)
             return smap[self.next_state]
 
 
@@ -29,11 +29,17 @@ class KeyPressState:
         self.next_state = next_state
         self.kb = kb
         self.kc = kc
+        self.is_list = False
+        if isinstance(kc, list):
+            self.is_list = True
         self.reset()
         self.release()
 
     def release(self):
-        self.kb.release(self.kc)
+        if not self.is_list:
+            self.kb.release(self.kc)
+        else:
+            self.kb.release(*self.kc)
 
     def type(self):
         return "keypress"
@@ -49,7 +55,10 @@ class KeyPressState:
         if inp and not self.is_pressed:
             self.is_pressed = True
             try:
-                self.kb.press(self.kc)
+                if not self.is_list:
+                    self.kb.press(self.kc)
+                else:
+                    self.kb.press(*self.kc)
             except ValueError:
                 print("more than 6?")
             return self
@@ -121,7 +130,7 @@ class WaitState:
             inp = not inp
 
         if inp and self.success_on_permissive_hold and permissive_hold:
-            print(f"permissive hold {self.name} transitioning to success")
+            # print(f"permissive hold {self.name} transitioning to success")
             return smap[self.success_state]
 
         if inp and not self.in_wait:
@@ -130,18 +139,18 @@ class WaitState:
             return self
         elif inp and self.in_wait:
             if time.monotonic() - self.wait_started > self.T:
-                print(f"{self.name} transitioning to success")
+                # print(f"{self.name} transitioning to success")
                 return smap[self.success_state]
             return self
         elif not inp and self.in_wait:
             if time.monotonic() - self.wait_started > self.T:
-                print(f"{self.name} transitioning to success")
+                # print(f"{self.name} transitioning to success")
                 return smap[self.success_state]
             else:
-                print(f"{self.name} transitioning to failure")
+                # print(f"{self.name} transitioning to failure")
                 return smap[self.fail_state]
         else:
-            print("wait else?")
+            # print("wait else?")
             return self
 
 
@@ -163,8 +172,8 @@ class StateMachine:
         next_state = self.cur_state.update(inp, self.states, permissive_hold)
 
         while next_state != self.cur_state:
-            print(next_state)
-            print(f"State changed to {str(next_state)}")
+            # print(next_state)
+            # print(f"State changed to {str(next_state)}")
             if next_state:
                 self.cur_state = next_state
                 next_state = next_state.into(self.states, permissive_hold)
@@ -172,6 +181,6 @@ class StateMachine:
                 break
         self.cur_state = next_state
         if self.cur_state is None:
-            print("machine died, rebooting")
+            # print("machine died, rebooting")
             self.reset()
             self.cur_state = self.states[0]
