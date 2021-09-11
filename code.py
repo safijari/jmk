@@ -33,6 +33,9 @@ class PlainJaneKey:
             }
         )
 
+    def __repr__(self):
+        return f"{self.kc}"
+
     def update(self, val):
         self.sm.update(val)
 
@@ -128,62 +131,131 @@ def mk(kc):
     return PlainJaneKey(keyboard, kc)
 
 
-layout_right = {
-    1: {
-        1: mk(kc.BACKSLASH),
-        2: mk(kc.P),
-        3: mk(kc.O),
-        4: mk(kc.I),
-        5: mk(kc.U),
-        6: mk(kc.Y),
+layers = {
+    "base": {
+        "right": {
+            1: {
+                1: mk(kc.BACKSPACE),
+                2: mk(kc.P),
+                3: mk(kc.O),
+                4: mk(kc.I),
+                5: mk(kc.U),
+                6: mk(kc.Y),
+            },
+            2: {
+                1: mk(kc.RETURN),
+                2: mk(kc.SEMICOLON),
+                3: mk(kc.L),
+                4: mk(kc.K),
+                5: mk(kc.J),
+                6: mk(kc.H),
+            },
+            3: {
+                # 1: TapDance(keyboard, kc.RIGHT_SHIFT, kc.CAPS_LOCK),
+                1: mk(kc.RIGHT_SHIFT),
+                2: mk(kc.FORWARD_SLASH),
+                3: mk(kc.PERIOD),
+                4: mk(kc.COMMA),
+                5: mk(kc.M),
+                6: mk(kc.N),
+            },
+            4: {4: mk(kc.SPACE), 5: "numbers", 6: mk(kc.RIGHT_CONTROL)},
+        },
+        "left": {
+            1: {
+                1: mk(kc.EQUALS),
+                2: mk(kc.Q),
+                3: mk(kc.W),
+                4: mk(kc.E),
+                5: mk(kc.R),
+                6: mk(kc.T),
+            },
+            2: {
+                1: ModTap(kb, kc.TAB, kc.LEFT_GUI),
+                2: mk(kc.A),
+                3: mk(kc.S),
+                4: mk(kc.D),
+                5: mk(kc.F),
+                6: mk(kc.G),
+            },
+            3: {
+                # 1: TapDance(keyboard, kc.LEFT_SHIFT, kc.CAPS_LOCK),
+                1: mk(kc.LEFT_SHIFT),
+                2: mk(kc.Z),
+                3: mk(kc.X),
+                4: mk(kc.C),
+                5: mk(kc.V),
+                6: mk(kc.B),
+            },
+            4: {4: mk(kc.LEFT_GUI), 5: "nav", 6: mk(kc.ESCAPE)},
+        },
     },
-    2: {
-        1: mk(kc.QUOTE),
-        2: mk(kc.SEMICOLON),
-        3: mk(kc.L),
-        4: mk(kc.K),
-        5: mk(kc.J),
-        6: mk(kc.H),
+    "numbers": {
+        "right": {
+            2: {
+                # 1: mk(kc.QUOTE),
+                2: mk(kc.ZERO),
+                3: mk(kc.NINE),
+                4: mk(kc.EIGHT),
+                5: mk(kc.SEVEN),
+                6: mk(kc.SIX),
+            },
+        },
+        "left": {},
     },
-    3: {
-        # 1: TapDance(keyboard, kc.RIGHT_SHIFT, kc.CAPS_LOCK),
-        1: mk(kc.RIGHT_SHIFT),
-        2: mk(kc.FORWARD_SLASH),
-        3: mk(kc.PERIOD),
-        4: mk(kc.COMMA),
-        5: mk(kc.M),
-        6: mk(kc.N),
+    "nav": {
+        "right": {
+            2: {
+                # 1: mk(kc.QUOTE),
+                # 2: mk(kc.ZERO),
+                3: mk(kc.RIGHT_ARROW),
+                4: mk(kc.UP_ARROW),
+                5: mk(kc.DOWN_ARROW),
+                6: mk(kc.LEFT_ARROW),
+            },
+        },
+        "left": {},
     },
-    4: {4: mk(kc.SPACE), 5: mk(kc.RIGHT_CONTROL), 6: mk(kc.RETURN)},
 }
 
-layout_left = {
-    1: {
-        1: mk(kc.EQUALS),
-        2: mk(kc.Q),
-        3: mk(kc.W),
-        4: mk(kc.E),
-        5: mk(kc.R),
-        6: mk(kc.T),
+layer_info = {"left": {}, "right": {}}
+
+for side in ["left", "right"]:
+    for row_idx, row_info in layers["base"][side].items():
+        for col_idx, col_info in row_info.items():
+            if col_info in layers:
+                layer_info[side][col_info] = (row_idx, col_idx)
+
+print(layer_info)
+
+final = {
+    "right": {
+        1: {1: None, 2: None, 3: None, 4: None, 5: None, 6: None,},
+        2: {1: None, 2: None, 3: None, 4: None, 5: None, 6: None,},
+        3: {1: None, 2: None, 3: None, 4: None, 5: None, 6: None,},
+        4: {4: None, 5: None, 6: None},
     },
-    2: {
-        1: ModTap(kb, kc.TAB, kc.LEFT_GUI),
-        2: mk(kc.A),
-        3: mk(kc.S),
-        4: mk(kc.D),
-        5: mk(kc.F),
-        6: mk(kc.G),
+    "left": {
+        1: {1: None, 2: None, 3: None, 4: None, 5: None, 6: None,},
+        2: {1: None, 2: None, 3: None, 4: None, 5: None, 6: None,},
+        3: {1: None, 2: None, 3: None, 4: None, 5: None, 6: None,},
+        4: {4: None, 5: None, 6: None},
     },
-    3: {
-        # 1: TapDance(keyboard, kc.LEFT_SHIFT, kc.CAPS_LOCK),
-        1: mk(kc.LEFT_SHIFT),
-        2: mk(kc.Z),
-        3: mk(kc.X),
-        4: mk(kc.C),
-        5: mk(kc.V),
-        6: mk(kc.B),
+}
+
+state = {
+    "right": {
+        1: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
+        2: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
+        3: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
+        4: {4: False, 5: False, 6: False},
     },
-    4: {4: mk(kc.BACKSPACE), 5: mk(kc.RIGHT_CONTROL), 6: mk(kc.ESCAPE)},
+    "left": {
+        1: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
+        2: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
+        3: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
+        4: {4: False, 5: False, 6: False},
+    },
 }
 
 print("loop starting")
@@ -199,26 +271,63 @@ while True:
         continue
     for row, (row_idx, row_name) in zip(row_pins, row_pin_map.items()):
         row.value = False
-        col_layout = layout_right.get(row_idx, {})
+        # col_layout = layout_right.get(row_idx, {})
         for col, (col_idx, col_name) in zip(col_pins, col_pin_map.items()):
-            out = not col.value
-            sm = col_layout.get(col_idx, None)
-            if sm:
-                sm.update(out)
+            state["right"][row_idx][col_idx] = not col.value
+            # sm = col_layout.get(col_idx, None)
+            # if sm:
+            #     sm.update(out)
         row.value = True
 
     j = 0
-    # print(chr(left_half_stuff[0]) == "0")
     for row, (row_idx, row_name) in zip(row_pins, row_pin_map.items()):
-        col_layout = layout_left.get(row_idx, {})
+        # col_layout = layout_left.get(row_idx, {})
         for col, (col_idx, col_name) in zip(col_pins, col_pin_map.items()):
-            out = chr(left_half_stuff[j]) == "1"
-            sm = col_layout.get(col_idx, None)
-            if sm:
-                sm.update(out)
+            state["left"][row_idx][col_idx] = chr(left_half_stuff[j]) == "1"
+            # sm = col_layout.get(col_idx, None)
+            # if sm:
+            #     sm.update(out)
             j += 1
 
     counter += 1
+
+    layer = "base"
+
+    for side in ["left", "right"]:
+        for possible_layer, (row_idx, col_idx) in layer_info[side].items():
+            if state[side].get(row_idx, {}).get(col_idx, False):
+                layer = possible_layer
+
+    base_layer = layers["base"]
+    le_layer = layers[layer]
+
+    for side in ["left", "right"]:
+        le_state = state[side]
+        le_final = final[side]
+        le_layer_side = le_layer[side]
+        base_layer_side = base_layer[side]
+        for row_idx, row_name in row_pin_map.items():
+            if row_idx not in le_state:
+                continue
+            col_state = le_state[row_idx]
+            col_final = le_final[row_idx]
+            col_layer = le_layer_side.get(row_idx, {})
+            col_base = base_layer_side[row_idx]
+            for col_idx, col_name in col_pin_map.items():
+                if col_idx not in col_final:
+                    continue
+                key_state = col_state[col_idx]
+                key_final = col_final[col_idx]
+                if key_final in layer_info[side]:
+                    continue
+                if key_final is None or key_final.sm.cur_state_type == "start":
+                    col_final[col_idx] = col_layer.get(
+                        col_idx, col_base.get(col_idx, None)
+                    )
+                actual_final = col_final[col_idx]
+                if actual_final in layer_info[side]:
+                    continue
+                actual_final.sm.update(key_state)
 
     iters = 10
     if counter % iters == 0:

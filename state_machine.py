@@ -9,6 +9,9 @@ class StartState:
     def reset(self):
         pass
 
+    def type(self):
+        return "start"
+
     def into(self, smap):
         return self
 
@@ -26,15 +29,14 @@ class KeyPressState:
         self.next_state = next_state
         self.kb = kb
         self.kc = kc
-        self.is_list = isinstance(self.kc, list)
         self.reset()
         self.release()
 
     def release(self):
-        if not self.is_list:
-            self.kb.release(self.kc)
-        else:
-            self.kb.release(*self.kc)
+        self.kb.release(self.kc)
+
+    def type(self):
+        return "keypress"
 
     def reset(self):
         self.is_pressed = False
@@ -46,10 +48,10 @@ class KeyPressState:
     def update(self, inp, smap):
         if inp and not self.is_pressed:
             self.is_pressed = True
-            if not self.is_list:
+            try:
                 self.kb.press(self.kc)
-            else:
-                self.kb.press(*self.kc)
+            except ValueError:
+                print("more than 6?")
             return self
         elif inp and self.is_pressed:
             return self
@@ -71,6 +73,9 @@ class KeyTapState:
 
     def reset(self):
         pass
+
+    def type(self):
+        return "keytap"
 
     def into(self, smap):
         self.reset()
@@ -94,6 +99,9 @@ class WaitState:
     def reset(self):
         self.wait_started = None
         self.in_wait = None
+
+    def type(self):
+        return "wait"
 
     def into(self, smap):
         self.reset()
@@ -132,6 +140,10 @@ class StateMachine:
     def reset(self):
         for s in self.states.values():
             s.reset()
+
+    @property
+    def cur_state_type(self):
+        return self.cur_state.type()
 
     def update(self, inp):
         next_state = self.cur_state.update(inp, self.states)
