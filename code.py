@@ -51,7 +51,13 @@ class ModTap:
         self.sm = StateMachine(
             {
                 "start": StartState("Start", "act1wait"),
-                "act1wait": WaitState("Act1Wait1", T, "act2press", "act1tap"),
+                "act1wait": WaitState(
+                    "Act1Wait1",
+                    T,
+                    "act2press",
+                    "act1tap",
+                    success_on_permissive_hold=True,
+                ),
                 "act1tap": KeyTapState("Act1Tap", kb, kc1, "start"),
                 "act2press": KeyPressState("Act2Press", kb, kc2, "start"),
             }
@@ -74,13 +80,13 @@ class TapDance:
         self.sm = StateMachine(
             {
                 "start": StartState("Start", "act1wait"),
-                "act1wait": WaitState("Act1Wait1", T, "act1press", "act1tapwait"),
+                "act1wait": WaitState("Act1Wait1", T, "act1press", "act1tapwait", success_on_permissive_hold=True),
                 "act1tapwait": WaitState(
                     "Act1Wait2", T, "act1tap", "act2wait", inverted=True
                 ),
                 "act1press": KeyPressState("Act1Press", kb, kc1, "start"),
                 "act1tap": KeyTapState("Act1Tap", kb, kc1, "start"),
-                "act2wait": WaitState("Act2Wait1", T, "act2press", "act2tapwait"),
+                "act2wait": WaitState("Act2Wait1", T, "act2press", "act2tapwait", success_on_permissive_hold=True),
                 "act2tapwait": WaitState(
                     "Act2Wait2", T, "act2tap", "start", inverted=True
                 ),
@@ -164,8 +170,8 @@ layers = {
                 6: mk(kc.H),
             },
             3: {
-                # 1: TapDance(keyboard, kc.RIGHT_SHIFT, kc.CAPS_LOCK),
-                1: mk(kc.RIGHT_SHIFT),
+                1: TapDance(keyboard, kc.RIGHT_SHIFT, kc.CAPS_LOCK),
+                # 1: mk(kc.RIGHT_SHIFT),
                 2: mk(kc.FORWARD_SLASH),
                 3: mk(kc.PERIOD),
                 4: mk(kc.COMMA),
@@ -192,8 +198,8 @@ layers = {
                 6: mk(kc.G),
             },
             3: {
-                # 1: TapDance(keyboard, kc.LEFT_SHIFT, kc.CAPS_LOCK),
-                1: mk(kc.LEFT_SHIFT),
+                1: TapDance(keyboard, kc.LEFT_SHIFT, kc.CAPS_LOCK),
+                # 1: mk(kc.LEFT_SHIFT),
                 2: mk(kc.Z),
                 3: mk(kc.X),
                 4: mk(kc.C),
@@ -340,6 +346,21 @@ while True:
     le_layer = layers[layer]
 
     for side in ["left", "right"]:
+        for (row, col) in permissive_hold_lists[side]:
+            cond = False
+            for side2 in ["left", "right"]:
+                if side2 == side:
+                    cond = len(flips[side2].difference(set([(row, col)])))
+                else:
+                    cond = len(flips[side2])
+                if cond:
+                    break
+            if cond:
+                print("would have permissived", side)
+                print(row, col)
+                base_layer[side][row][col].sm.update(state[side][row][col], True)
+
+    for side in ["left", "right"]:
         le_state = state[side]
         le_final = final[side]
         le_layer_side = le_layer[side]
@@ -370,5 +391,5 @@ while True:
 
     iters = 10
     if counter % iters == 0:
-        print(((time.monotonic() - prev_time) / iters * 1000))
+        # print(((time.monotonic() - prev_time) / iters * 1000))
         prev_time = time.monotonic()

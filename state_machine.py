@@ -12,10 +12,10 @@ class StartState:
     def type(self):
         return "start"
 
-    def into(self, smap):
+    def into(self, smap, permissive_hold=False):
         return self
 
-    def update(self, key_state, smap):
+    def update(self, key_state, smap, permissive_hold=False):
         if key_state == False:
             return self
         else:
@@ -41,11 +41,11 @@ class KeyPressState:
     def reset(self):
         self.is_pressed = False
 
-    def into(self, smap):
+    def into(self, smap, permissive_hold=False):
         self.reset()
         return self.update(True, smap)
 
-    def update(self, inp, smap):
+    def update(self, inp, smap, permissive_hold=False):
         if inp and not self.is_pressed:
             self.is_pressed = True
             try:
@@ -77,23 +77,32 @@ class KeyTapState:
     def type(self):
         return "keytap"
 
-    def into(self, smap):
+    def into(self, smap, permissive_hold=False):
         self.reset()
         return self.update(True, smap)
 
-    def update(self, inp, smap):
+    def update(self, inp, smap, permissive_hold=False):
         self.kb.press(self.kc)
         self.kb.release(self.kc)
         return smap[self.next_state]
 
 
 class WaitState:
-    def __init__(self, name, T, success_state, fail_state, inverted=False):
+    def __init__(
+        self,
+        name,
+        T,
+        success_state,
+        fail_state,
+        inverted=False,
+        success_on_permissive_hold=False,
+    ):
         self.name = name
         self.T = T
         self.success_state = success_state
         self.fail_state = fail_state
         self.inverted = inverted
+        self.success_on_permissive_hold = success_on_permissive_hold
         self.reset()
 
     def reset(self):
@@ -103,13 +112,18 @@ class WaitState:
     def type(self):
         return "wait"
 
-    def into(self, smap):
+    def into(self, smap, permissive_hold=False):
         self.reset()
-        return self.update(True, smap)
+        return self.update(True, smap, permissive_hold)
 
-    def update(self, inp, smap):
+    def update(self, inp, smap, permissive_hold=False):
         if self.inverted:
             inp = not inp
+
+        if inp and self.success_on_permissive_hold and permissive_hold:
+            print(f"permissive hold {self.name} transitioning to success")
+            return smap[self.success_state]
+
         if inp and not self.in_wait:
             self.in_wait = True
             self.wait_started = time.monotonic()
@@ -145,15 +159,15 @@ class StateMachine:
     def cur_state_type(self):
         return self.cur_state.type()
 
-    def update(self, inp):
-        next_state = self.cur_state.update(inp, self.states)
+    def update(self, inp, permissive_hold=False):
+        next_state = self.cur_state.update(inp, self.states, permissive_hold)
 
         while next_state != self.cur_state:
             print(next_state)
             print(f"State changed to {str(next_state)}")
             if next_state:
                 self.cur_state = next_state
-                next_state = next_state.into(self.states)
+                next_state = next_state.into(self.states, permissive_hold)
             else:
                 break
         self.cur_state = next_state
