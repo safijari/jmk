@@ -33,7 +33,7 @@ class KeyPressState:
         if isinstance(kc, list):
             self.is_list = True
         self.reset()
-        self.release()
+        # self.release()
 
     def release(self):
         if not self.is_list:
@@ -78,7 +78,10 @@ class KeyTapState:
         self.next_state = next_state
         self.kb = kb
         self.kc = kc
-        self.kb.release(kc)
+        self.is_list = False
+        if isinstance(kc, list):
+            self.is_list = True
+        # self.kb.release(kc)
 
     def reset(self):
         pass
@@ -91,8 +94,12 @@ class KeyTapState:
         return self.update(True, smap)
 
     def update(self, inp, smap, permissive_hold=False):
-        self.kb.press(self.kc)
-        self.kb.release(self.kc)
+        if not self.is_list:
+            self.kb.press(self.kc)
+            self.kb.release(self.kc)
+        else:
+            self.kb.press(*self.kc)
+            self.kb.release(*self.kc)
         return smap[self.next_state]
 
 

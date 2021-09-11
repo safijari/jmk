@@ -47,7 +47,7 @@ class Key:
 
 class ModTap:
     def __init__(self, kb, kc1, kc2):
-        T = 0.1
+        T = 0.15
         self.sm = StateMachine(
             {
                 "start": StartState("Start", "act1wait"),
@@ -75,7 +75,7 @@ class TapDance:
     def __init__(self, kb, kc1, kc2):
         self.kb = kb
 
-        T = 0.1
+        T = 0.15
 
         self.sm = StateMachine(
             {
@@ -220,7 +220,7 @@ layers = {
                 6: mk(kc.B),
             },
             4: {
-                4: mk(kc.LEFT_GUI),
+                4: TapDance(keyboard, kc.LEFT_GUI, [kc.LEFT_GUI, kc.LEFT_SHIFT]),
                 5: "nav",
                 6: ModTap(kb, kc.ESCAPE, kc.LEFT_CONTROL),
             },
