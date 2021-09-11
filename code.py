@@ -15,11 +15,12 @@ from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
 from adafruit_hid.keycode import Keycode
 
 import busio
+import gc
 
 uart = busio.UART(board.GP16, board.GP17, baudrate=115200)
 
 
-class PlainJaneKey:
+class Key:
     def __init__(self, kb, kc):
         self.kb = kb
         self.kc = kc  # keycode?
@@ -39,6 +40,10 @@ class PlainJaneKey:
     def update(self, val):
         self.sm.update(val)
 
+    @property
+    def type(self):
+        return "key"
+
 
 class ModTap:
     def __init__(self, kb, kc1, kc2):
@@ -54,6 +59,10 @@ class ModTap:
 
     def update(self, val):
         self.sm.update(val)
+
+    @property
+    def type(self):
+        return "modtap"
 
 
 class TapDance:
@@ -79,6 +88,10 @@ class TapDance:
                 "act2tap": KeyTapState("Act2Tap", kb, kc2, "start"),
             }
         )
+
+    @property
+    def type(self):
+        return "tapdance"
 
     def update(self, val):
         self.sm.update(val)
@@ -128,7 +141,7 @@ kb = keyboard
 
 
 def mk(kc):
-    return PlainJaneKey(keyboard, kc)
+    return Key(keyboard, kc)
 
 
 layers = {
@@ -220,13 +233,19 @@ layers = {
 
 layer_info = {"left": {}, "right": {}}
 
+permissive_hold_lists = {"left": [], "right": []}
+
 for side in ["left", "right"]:
     for row_idx, row_info in layers["base"][side].items():
         for col_idx, col_info in row_info.items():
             if col_info in layers:
                 layer_info[side][col_info] = (row_idx, col_idx)
+                continue
+            if col_info.type in ["modtap", "tapdance"]:
+                permissive_hold_lists[side].append((row_idx, col_idx))
 
 print(layer_info)
+print(permissive_hold_lists)
 
 final = {
     "right": {
@@ -243,7 +262,7 @@ final = {
     },
 }
 
-state = {
+prev_state = {
     "right": {
         1: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
         2: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
@@ -258,12 +277,29 @@ state = {
     },
 }
 
+state = {
+    "right": {
+        1: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
+        2: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
+        3: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
+        4: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
+    },
+    "left": {
+        1: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
+        2: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
+        3: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
+        4: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
+    },
+}
+
 print("loop starting")
 
 counter = 0
 prev_time = time.monotonic()
 
 while True:
+    gc.collect()
+    flips = {"left": set(), "right": set()}
     # Check each pin
     left_half_stuff = uart.readline()
     if not left_half_stuff or len(left_half_stuff) != 25:
@@ -271,22 +307,24 @@ while True:
         continue
     for row, (row_idx, row_name) in zip(row_pins, row_pin_map.items()):
         row.value = False
-        # col_layout = layout_right.get(row_idx, {})
         for col, (col_idx, col_name) in zip(col_pins, col_pin_map.items()):
-            state["right"][row_idx][col_idx] = not col.value
-            # sm = col_layout.get(col_idx, None)
-            # if sm:
-            #     sm.update(out)
+            prev_state_val = state["right"][row_idx][col_idx]
+            prev_state["right"][row_idx][col_idx] = prev_state_val
+            cur_state_val = not col.value
+            state["right"][row_idx][col_idx] = cur_state_val
+            if cur_state_val and not prev_state_val:
+                flips["right"].add((row_idx, col_idx))
         row.value = True
 
     j = 0
     for row, (row_idx, row_name) in zip(row_pins, row_pin_map.items()):
-        # col_layout = layout_left.get(row_idx, {})
         for col, (col_idx, col_name) in zip(col_pins, col_pin_map.items()):
-            state["left"][row_idx][col_idx] = chr(left_half_stuff[j]) == "1"
-            # sm = col_layout.get(col_idx, None)
-            # if sm:
-            #     sm.update(out)
+            prev_state_val = state["left"][row_idx][col_idx]
+            prev_state["left"][row_idx][col_idx] = prev_state_val
+            cur_state_val = chr(left_half_stuff[j]) == "1"
+            state["left"][row_idx][col_idx] = cur_state_val
+            if cur_state_val and not prev_state_val:
+                flips["left"].add((row_idx, col_idx))
             j += 1
 
     counter += 1
@@ -327,6 +365,7 @@ while True:
                 actual_final = col_final[col_idx]
                 if actual_final in layer_info[side]:
                     continue
+
                 actual_final.sm.update(key_state)
 
     iters = 10
