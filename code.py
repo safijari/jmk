@@ -19,10 +19,14 @@ import gc
 
 uart = busio.UART(board.GP16, board.GP17, baudrate=115200)
 
+keyboard = Keyboard(usb_hid.devices)
+keyboard_layout = KeyboardLayoutUS(keyboard)  # We're in the US :)
+
+time.sleep(1)  # Sleep for a bit to avoid a race condition on some systems
 
 class Key:
-    def __init__(self, kb, kc):
-        self.kb = kb
+    def __init__(self, kc):
+        self.kb = keyboard
         self.kc = kc  # keycode?
 
         self.sm = StateMachine(
@@ -46,7 +50,8 @@ class Key:
 
 
 class ModTap:
-    def __init__(self, kb, kc1, kc2):
+    def __init__(self, kc1, kc2):
+        kb = keyboard
         T = 0.15
         self.sm = StateMachine(
             {
@@ -72,8 +77,13 @@ class ModTap:
 
 
 class TapDance:
-    def __init__(self, kb, kc1, kc2):
+    def __init__(self, kc1, kc2, kc1hold=None, kc2hold=None):
+        kb = keyboard
         self.kb = kb
+        if kc1hold is None:
+            kc1hold = kc1
+        if kc2hold is None:
+            kc2hold = kc2
 
         T = 0.15
 
@@ -90,7 +100,7 @@ class TapDance:
                 "act1tapwait": WaitState(
                     "Act1Wait2", T, "act1tap", "act2wait", inverted=True
                 ),
-                "act1press": KeyPressState("Act1Press", kb, kc1, "start"),
+                "act1press": KeyPressState("Act1Press", kb, kc1hold, "start"),
                 "act1tap": KeyTapState("Act1Tap", kb, kc1, "start"),
                 "act2wait": WaitState(
                     "Act2Wait1",
@@ -100,9 +110,9 @@ class TapDance:
                     success_on_permissive_hold=True,
                 ),
                 "act2tapwait": WaitState(
-                    "Act2Wait2", T, "act2tap", "start", inverted=True
+                    "Act2Wait2", T, "act2tap", "start", inverted=True, success_on_permissive_hold=True,
                 ),
-                "act2press": KeyPressState("Act2Press", kb, kc2, "start"),
+                "act2press": KeyPressState("Act2Press", kb, kc2hold, "start"),
                 "act2tap": KeyTapState("Act2Tap", kb, kc2, "start"),
             }
         )
@@ -149,138 +159,125 @@ for idx, pin in row_pin_map.items():
 prev_time = time.monotonic_ns()
 
 
-
-keyboard = Keyboard(usb_hid.devices)
-keyboard_layout = KeyboardLayoutUS(keyboard)  # We're in the US :)
-
-time.sleep(1)  # Sleep for a bit to avoid a race condition on some systems
-
 kc = Keycode
-kb = keyboard
-
-
-def mk(kc):
-    return Key(keyboard, kc)
-
 
 layers = {
     "base": {
         "right": {
             1: {
-                1: mk(kc.BACKSPACE),
-                2: mk(kc.P),
-                3: mk(kc.O),
-                4: mk(kc.I),
-                5: mk(kc.U),
-                6: mk(kc.Y),
+                1: Key(kc.BACKSPACE),
+                2: Key(kc.P),
+                3: Key(kc.O),
+                4: Key(kc.I),
+                5: Key(kc.U),
+                6: Key(kc.Y),
             },
             2: {
-                1: mk(kc.RETURN),
-                2: mk(kc.SEMICOLON),
-                3: mk(kc.L),
-                4: mk(kc.K),
-                5: mk(kc.J),
-                6: mk(kc.H),
+                1: Key(kc.RETURN),
+                2: Key(kc.SEMICOLON),
+                3: Key(kc.L),
+                4: Key(kc.K),
+                5: Key(kc.J),
+                6: Key(kc.H),
             },
             3: {
-                1: TapDance(keyboard, kc.RIGHT_SHIFT, kc.CAPS_LOCK),
-                # 1: mk(kc.RIGHT_SHIFT),
-                2: mk(kc.FORWARD_SLASH),
-                3: mk(kc.PERIOD),
-                4: mk(kc.COMMA),
-                5: mk(kc.M),
-                6: mk(kc.N),
+                1: TapDance(kc.RIGHT_SHIFT, kc.CAPS_LOCK),
+                2: Key(kc.FORWARD_SLASH),
+                3: Key(kc.PERIOD),
+                4: Key(kc.COMMA),
+                5: Key(kc.M),
+                6: Key(kc.N),
             },
-            4: {4: mk(kc.SPACE), 5: "numbers", 6: mk(kc.RIGHT_CONTROL)},
+            4: {4: Key(kc.SPACE), 5: "numbers", 6: TapDance(kc.RIGHT_CONTROL, [kc.RIGHT_CONTROL, kc.RIGHT_ALT])},
         },
         "left": {
             1: {
-                1: mk(kc.EQUALS),
-                2: mk(kc.Q),
-                3: mk(kc.W),
-                4: mk(kc.E),
-                5: mk(kc.R),
-                6: mk(kc.T),
+                1: Key(kc.EQUALS),
+                2: Key(kc.Q),
+                3: Key(kc.W),
+                4: Key(kc.E),
+                5: Key(kc.R),
+                6: Key(kc.T),
             },
             2: {
-                1: ModTap(kb, kc.TAB, kc.LEFT_GUI),
-                2: mk(kc.A),
-                3: mk(kc.S),
-                4: mk(kc.D),
-                5: mk(kc.F),
-                6: mk(kc.G),
+                1: ModTap(kc.TAB, kc.LEFT_GUI),
+                2: Key(kc.A),
+                3: Key(kc.S),
+                4: Key(kc.D),
+                5: Key(kc.F),
+                6: Key(kc.G),
             },
             3: {
-                1: TapDance(keyboard, kc.LEFT_SHIFT, kc.CAPS_LOCK),
-                # 1: mk(kc.LEFT_SHIFT),
-                2: mk(kc.Z),
-                3: mk(kc.X),
-                4: mk(kc.C),
-                5: mk(kc.V),
-                6: mk(kc.B),
+                1: TapDance(kc.LEFT_SHIFT, kc.CAPS_LOCK),
+                # 1: Key(kc.LEFT_SHIFT),
+                2: Key(kc.Z),
+                3: Key(kc.X),
+                4: Key(kc.C),
+                5: Key(kc.V),
+                6: Key(kc.B),
             },
             4: {
-                4: TapDance(keyboard, kc.LEFT_GUI, [kc.LEFT_GUI, kc.LEFT_SHIFT]),
+                4: TapDance(kc.LEFT_GUI, [kc.LEFT_GUI, kc.LEFT_SHIFT]),
                 5: "nav",
-                6: ModTap(kb, kc.ESCAPE, kc.LEFT_CONTROL),
+                6: ModTap(kc.ESCAPE, kc.LEFT_CONTROL),
             },
         },
     },
     "numbers": {
         "right": {
             1: {
-                1: mk([kc.MINUS, kc.LEFT_SHIFT]),
-                2: mk([kc.ZERO, kc.LEFT_SHIFT]),
-                3: mk([kc.NINE, kc.LEFT_SHIFT]),
-                4: mk([kc.EIGHT, kc.LEFT_SHIFT]),
-                5: mk([kc.SEVEN, kc.LEFT_SHIFT]),
-                6: mk([kc.SIX, kc.LEFT_SHIFT]),
+                1: Key([kc.MINUS, kc.LEFT_SHIFT]),
+                2: Key([kc.ZERO, kc.LEFT_SHIFT]),
+                3: Key([kc.NINE, kc.LEFT_SHIFT]),
+                4: Key([kc.EIGHT, kc.LEFT_SHIFT]),
+                5: Key([kc.SEVEN, kc.LEFT_SHIFT]),
+                6: Key([kc.SIX, kc.LEFT_SHIFT]),
             },
             2: {
-                1: mk(kc.MINUS),
-                2: mk(kc.ZERO),
-                3: mk(kc.NINE),
-                4: mk(kc.EIGHT),
-                5: mk(kc.SEVEN),
-                6: mk(kc.SIX),
+                1: Key(kc.MINUS),
+                2: Key(kc.ZERO),
+                3: Key(kc.NINE),
+                4: Key(kc.EIGHT),
+                5: Key(kc.SEVEN),
+                6: Key(kc.SIX),
             },
             3: {
-                # 1: mk(kc.MINUS),
-                2: mk(kc.RIGHT_BRACKET),
-                3: mk(kc.LEFT_BRACKET),
-                # 4: mk(kc.EIGHT),
-                # 5: mk(kc.SEVEN),
-                # 6: mk(kc.SIX),
+                # 1: Key(kc.MINUS),
+                2: Key(kc.RIGHT_BRACKET),
+                3: Key(kc.LEFT_BRACKET),
+                # 4: Key(kc.EIGHT),
+                # 5: Key(kc.SEVEN),
+                # 6: Key(kc.SIX),
             },
         },
         "left": {
             2: {
-                # 1: mk(kc.MINUS),
-                2: mk(kc.ONE),
-                3: mk(kc.TWO),
-                4: mk(kc.THREE),
-                5: mk(kc.FOUR),
-                6: mk(kc.FIVE),
+                # 1: Key(kc.MINUS),
+                2: Key(kc.ONE),
+                3: Key(kc.TWO),
+                4: Key(kc.THREE),
+                5: Key(kc.FOUR),
+                6: Key(kc.FIVE),
             },
             1: {
-                # 1: mk(kc.MINUS),
-                2: mk([kc.LEFT_SHIFT, kc.ONE]),
-                3: mk([kc.LEFT_SHIFT, kc.TWO]),
-                4: mk([kc.LEFT_SHIFT, kc.THREE]),
-                5: mk([kc.LEFT_SHIFT, kc.FOUR]),
-                6: mk([kc.LEFT_SHIFT, kc.FIVE]),
+                # 1: Key(kc.MINUS),
+                2: Key([kc.LEFT_SHIFT, kc.ONE]),
+                3: Key([kc.LEFT_SHIFT, kc.TWO]),
+                4: Key([kc.LEFT_SHIFT, kc.THREE]),
+                5: Key([kc.LEFT_SHIFT, kc.FOUR]),
+                6: Key([kc.LEFT_SHIFT, kc.FIVE]),
             },
         },
     },
     "nav": {
         "right": {
             2: {
-                # 1: mk(kc.QUOTE),
-                # 2: mk(kc.ZERO),
-                3: mk(kc.RIGHT_ARROW),
-                4: mk(kc.UP_ARROW),
-                5: mk(kc.DOWN_ARROW),
-                6: mk(kc.LEFT_ARROW),
+                # 1: Key(kc.QUOTE),
+                # 2: Key(kc.ZERO),
+                3: Key(kc.RIGHT_ARROW),
+                4: Key(kc.UP_ARROW),
+                5: Key(kc.DOWN_ARROW),
+                6: Key(kc.LEFT_ARROW),
             },
         },
         "left": {},
@@ -407,7 +404,7 @@ while True:
                     break
             if cond:
                 # print("would have permissived", side)
-                print(row, col)
+                # print(row, col)
                 base_layer[side][row][col].sm.update(state[side][row][col], True)
 
     for side in ["left", "right"]:
