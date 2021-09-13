@@ -327,7 +327,7 @@ layers = {
                 6: Key(kc.FIVE),
             },
             1: {
-                # 1: Key(kc.MINUS),
+                1: Key(kc.GRAVE_ACCENT),
                 2: Key([kc.LEFT_SHIFT, kc.ONE]),
                 3: Key([kc.LEFT_SHIFT, kc.TWO]),
                 4: Key([kc.LEFT_SHIFT, kc.THREE]),
@@ -347,7 +347,9 @@ layers = {
                 6: Key(kc.HOME),
             },
             2: {
+                1: Key(kc.QUOTE),
                 2: MouseKey(Mouse.RIGHT_BUTTON),
+                3: Key(kc.RIGHT_ARROW),
                 4: Key(kc.UP_ARROW),
                 5: Key(kc.DOWN_ARROW),
                 6: Key(kc.LEFT_ARROW),
