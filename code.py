@@ -26,7 +26,7 @@ uart = busio.UART(board.GP16, board.GP17, baudrate=115200)
 keyboard = Keyboard(usb_hid.devices)
 keyboard_layout = KeyboardLayoutUS(keyboard)  # We're in the US :)
 
-time.sleep(1)  # Sleep for a bit to avoid a race condition on some systems
+# time.sleep(1)  # Sleep for a bit to avoid a race condition on some systems
 
 
 class Key:
@@ -233,7 +233,7 @@ layers = {
                 6: Key(kc.Y),
             },
             2: {
-                1: ModTap(kc.QUOTE, kc.LEFT_SHIFT),
+                1: Key(kc.LEFT_SHIFT),
                 2: Key(kc.SEMICOLON),
                 3: Key(kc.L),
                 4: Key(kc.K),
@@ -303,7 +303,6 @@ layers = {
                 4: Key(kc.EIGHT),
                 5: Key(kc.SEVEN),
                 6: Key(kc.SIX),
-                1: Key(kc.CAPS_LOCK),
             },
             3: {
                 # 1: Key(kc.MINUS),
@@ -339,7 +338,7 @@ layers = {
     "nav": {
         "right": {
             1: {
-                1: Key(kc.DELETE),
+                1: Key([kc.QUOTE, kc.RIGHT_SHIFT]),
                 2: MouseKey(Mouse.LEFT_BUTTON),
                 3: Key(kc.END),
                 4: Key(kc.PAGE_UP),
