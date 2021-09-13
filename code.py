@@ -52,7 +52,7 @@ class Key:
 class ModTap:
     def __init__(self, kc1, kc2):
         kb = keyboard
-        T = 0.15
+        T = 0.1
         self.sm = StateMachine(
             {
                 "start": StartState("Start", "act1wait"),
@@ -85,8 +85,8 @@ class TapDance:
         if kc2hold is None:
             kc2hold = kc2
 
-        T = 0.15
-
+        T = 0.1
+        
         self.sm = StateMachine(
             {
                 "start": StartState("Start", "act1wait"),
@@ -98,7 +98,7 @@ class TapDance:
                     success_on_permissive_hold=True,
                 ),
                 "act1tapwait": WaitState(
-                    "Act1Wait2", T, "act1tap", "act2wait", inverted=True
+                    "Act1Wait2", T, "act1tap", "act2wait", inverted=True, success_on_permissive_hold=True,
                 ),
                 "act1press": KeyPressState("Act1Press", kb, kc1hold, "start"),
                 "act1tap": KeyTapState("Act1Tap", kb, kc1, "start"),
@@ -165,7 +165,7 @@ layers = {
     "base": {
         "right": {
             1: {
-                1: Key(kc.BACKSPACE),
+                1: Key(kc.MINUS),
                 2: Key(kc.P),
                 3: Key(kc.O),
                 4: Key(kc.I),
@@ -173,7 +173,7 @@ layers = {
                 6: Key(kc.Y),
             },
             2: {
-                1: Key(kc.RETURN),
+                1: TapDance(kc.QUOTE, kc.CAPS_LOCK, kc.LEFT_SHIFT),
                 2: Key(kc.SEMICOLON),
                 3: Key(kc.L),
                 4: Key(kc.K),
@@ -181,7 +181,7 @@ layers = {
                 6: Key(kc.H),
             },
             3: {
-                1: TapDance(kc.RIGHT_SHIFT, kc.CAPS_LOCK),
+                1: Key(kc.RETURN),
                 2: Key(kc.FORWARD_SLASH),
                 3: Key(kc.PERIOD),
                 4: Key(kc.COMMA),
@@ -200,7 +200,7 @@ layers = {
                 6: Key(kc.T),
             },
             2: {
-                1: ModTap(kc.TAB, kc.LEFT_GUI),
+                1: ModTap(kc.TAB, kc.LEFT_SHIFT),
                 2: Key(kc.A),
                 3: Key(kc.S),
                 4: Key(kc.D),
@@ -208,8 +208,7 @@ layers = {
                 6: Key(kc.G),
             },
             3: {
-                1: TapDance(kc.LEFT_SHIFT, kc.CAPS_LOCK),
-                # 1: Key(kc.LEFT_SHIFT),
+                1: Key(kc.BACKSPACE),
                 2: Key(kc.Z),
                 3: Key(kc.X),
                 4: Key(kc.C),
@@ -219,7 +218,7 @@ layers = {
             4: {
                 4: TapDance(kc.LEFT_GUI, [kc.LEFT_GUI, kc.LEFT_SHIFT]),
                 5: "nav",
-                6: ModTap(kc.ESCAPE, kc.LEFT_CONTROL),
+                6: TapDance(kc.ESCAPE, kc.LEFT_ALT, kc.LEFT_CONTROL),
             },
         },
     },
@@ -234,7 +233,7 @@ layers = {
                 6: Key([kc.SIX, kc.LEFT_SHIFT]),
             },
             2: {
-                1: Key(kc.MINUS),
+                1: Key(kc.PERIOD),
                 2: Key(kc.ZERO),
                 3: Key(kc.NINE),
                 4: Key(kc.EIGHT),
@@ -245,7 +244,9 @@ layers = {
                 # 1: Key(kc.MINUS),
                 2: Key(kc.RIGHT_BRACKET),
                 3: Key(kc.LEFT_BRACKET),
-                # 4: Key(kc.EIGHT),
+                4: Key([kc.RIGHT_SHIFT, kc.RIGHT_BRACKET]),
+                5: Key([kc.RIGHT_SHIFT, kc.LEFT_BRACKET]),
+                6: Key(kc.SPACE),
                 # 5: Key(kc.SEVEN),
                 # 6: Key(kc.SIX),
             },
@@ -273,8 +274,7 @@ layers = {
         "right": {
             2: {
                 # 1: Key(kc.QUOTE),
-                # 2: Key(kc.ZERO),
-                3: Key(kc.RIGHT_ARROW),
+                2: Key(kc.QUOTE),
                 4: Key(kc.UP_ARROW),
                 5: Key(kc.DOWN_ARROW),
                 6: Key(kc.LEFT_ARROW),
