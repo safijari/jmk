@@ -1,4 +1,4 @@
 code:
-	cp code.py /media/jari/CIRCUITPY/
+	sleep 0.5 && cp code.py /media/jari/CIRCUITPY/
 all:
-	cp * /media/jari/CIRCUITPY/
+	sleep 0.5 && cp * /media/jari/CIRCUITPY/

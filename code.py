@@ -272,12 +272,24 @@ layers = {
     },
     "nav": {
         "right": {
+            1: {
+                1: Key(kc.DELETE),
+                3: Key(kc.END),
+                4: Key(kc.PAGE_DOWN),
+                5: Key(kc.PAGE_UP),
+                6: Key(kc.HOME),
+            },
             2: {
-                # 1: Key(kc.QUOTE),
                 2: Key(kc.QUOTE),
                 4: Key(kc.UP_ARROW),
                 5: Key(kc.DOWN_ARROW),
                 6: Key(kc.LEFT_ARROW),
+            },
+            3: {
+                3: Key([kc.RIGHT_ARROW, kc.RIGHT_CONTROL]),
+                4: Key([kc.RIGHT_ARROW, kc.RIGHT_ALT]),
+                5: Key([kc.LEFT_ARROW, kc.RIGHT_ALT]),
+                6: Key([kc.LEFT_ARROW, kc.RIGHT_CONTROL]),
             },
         },
         "left": {},
