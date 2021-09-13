@@ -7,6 +7,7 @@ from state_machine import (
     WaitState,
     KeyPressState,
     KeyTapState,
+    MouseMoveState,
 )
 
 import usb_hid
@@ -16,6 +17,9 @@ from adafruit_hid.keycode import Keycode
 
 import busio
 import gc
+from adafruit_hid.mouse import Mouse
+
+mouse = Mouse(usb_hid.devices)
 
 uart = busio.UART(board.GP16, board.GP17, baudrate=115200)
 
@@ -23,6 +27,7 @@ keyboard = Keyboard(usb_hid.devices)
 keyboard_layout = KeyboardLayoutUS(keyboard)  # We're in the US :)
 
 time.sleep(1)  # Sleep for a bit to avoid a race condition on some systems
+
 
 class Key:
     def __init__(self, kc):
@@ -34,6 +39,28 @@ class Key:
                 "start": StartState("Start", "key_press"),
                 "key_press": KeyPressState(
                     "Press " + str(kc), self.kb, self.kc, "start"
+                ),
+            }
+        )
+
+    def __repr__(self):
+        return f"{self.kc}"
+
+    def update(self, val):
+        self.sm.update(val)
+
+    @property
+    def type(self):
+        return "key"
+
+
+class MouseMove:
+    def __init__(self, dx, dy, ax=1, ay=1):
+        self.sm = StateMachine(
+            {
+                "start": StartState("Start", "key_press"),
+                "key_press": MouseMoveState(
+                    "MouseMove", mouse, dx, dy, "start", ax, ay
                 ),
             }
         )
@@ -86,7 +113,7 @@ class TapDance:
             kc2hold = kc2
 
         T = 0.1
-        
+
         self.sm = StateMachine(
             {
                 "start": StartState("Start", "act1wait"),
@@ -98,7 +125,12 @@ class TapDance:
                     success_on_permissive_hold=True,
                 ),
                 "act1tapwait": WaitState(
-                    "Act1Wait2", T, "act1tap", "act2wait", inverted=True, success_on_permissive_hold=True,
+                    "Act1Wait2",
+                    T,
+                    "act1tap",
+                    "act2wait",
+                    inverted=True,
+                    success_on_permissive_hold=True,
                 ),
                 "act1press": KeyPressState("Act1Press", kb, kc1hold, "start"),
                 "act1tap": KeyTapState("Act1Tap", kb, kc1, "start"),
@@ -110,7 +142,12 @@ class TapDance:
                     success_on_permissive_hold=True,
                 ),
                 "act2tapwait": WaitState(
-                    "Act2Wait2", T, "act2tap", "start", inverted=True, success_on_permissive_hold=True,
+                    "Act2Wait2",
+                    T,
+                    "act2tap",
+                    "start",
+                    inverted=True,
+                    success_on_permissive_hold=True,
                 ),
                 "act2press": KeyPressState("Act2Press", kb, kc2hold, "start"),
                 "act2tap": KeyTapState("Act2Tap", kb, kc2, "start"),
@@ -188,7 +225,11 @@ layers = {
                 5: Key(kc.M),
                 6: Key(kc.N),
             },
-            4: {4: Key(kc.SPACE), 5: "numbers", 6: TapDance(kc.RIGHT_CONTROL, [kc.RIGHT_CONTROL, kc.RIGHT_ALT])},
+            4: {
+                4: Key(kc.SPACE),
+                5: "numbers",
+                6: TapDance(kc.RIGHT_CONTROL, [kc.RIGHT_CONTROL, kc.RIGHT_ALT]),
+            },
         },
         "left": {
             1: {
@@ -292,7 +333,16 @@ layers = {
                 6: Key([kc.LEFT_ARROW, kc.RIGHT_CONTROL]),
             },
         },
-        "left": {},
+        "left": {
+            1: {
+                4: MouseMove(0, -10, 1.025, 1.025),
+            },
+            2: {
+                3: MouseMove(-10, 0, 1.025, 1.025),
+                4: MouseMove(0, 10, 1.025, 1.025),
+                5: MouseMove(10, 0, 1.025, 1.025),
+            }
+        },
     },
 }
 

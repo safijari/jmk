@@ -71,6 +71,55 @@ class KeyPressState:
             self.release()
             return smap[self.next_state]
 
+class MouseMoveState:
+    def __init__(self, name, mouse, dx, dy, next_state, ax=1, ay=1):
+        self.name = name
+        self.next_state = next_state
+        self.mouse = mouse
+        self.dx = dx
+        self.dy = dy
+        self.ax = ax
+        self.ay = ay
+        self.vx = self.vy = 0
+        self.is_pressed = False
+        self.reset()
+
+    def release(self):
+        pass
+
+    def type(self):
+        return "mousemove"
+
+    def reset(self):
+        self.vx = self.vy = 0
+
+    def into(self, smap, permissive_hold=False):
+        self.reset()
+        return self.update(True, smap)
+
+    def update(self, inp, smap, permissive_hold=False):
+        if inp and not self.is_pressed:
+            self.is_pressed = True
+            self.vx = self.dx
+            self.vy = self.dy
+            retval = self
+        elif inp and self.is_pressed:
+            self.vx *= self.ax
+            self.vy *= self.ay
+            retval = self
+        elif not inp and not self.is_pressed:
+            retval = self
+        else:
+            self.is_pressed = False
+            self.reset()
+            retval = smap[self.next_state]
+
+        if self.is_pressed:
+            self.mouse.move(int(self.vx), int(self.vy))
+
+        return retval
+
+
 
 class KeyTapState:
     def __init__(self, name, kb, kc, next_state):
