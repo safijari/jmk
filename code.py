@@ -233,7 +233,7 @@ layers = {
                 6: Key(kc.Y),
             },
             2: {
-                1: TapDance(kc.QUOTE, kc.CAPS_LOCK, kc.LEFT_SHIFT),
+                1: ModTap(kc.QUOTE, kc.LEFT_SHIFT),
                 2: Key(kc.SEMICOLON),
                 3: Key(kc.L),
                 4: Key(kc.K),
@@ -303,6 +303,7 @@ layers = {
                 4: Key(kc.EIGHT),
                 5: Key(kc.SEVEN),
                 6: Key(kc.SIX),
+                1: Key(kc.CAPS_LOCK),
             },
             3: {
                 # 1: Key(kc.MINUS),
@@ -318,6 +319,7 @@ layers = {
         "left": {
             2: {
                 # 1: Key(kc.MINUS),
+                1: Key(kc.CAPS_LOCK),
                 2: Key(kc.ONE),
                 3: Key(kc.TWO),
                 4: Key(kc.THREE),
@@ -340,8 +342,8 @@ layers = {
                 1: Key(kc.DELETE),
                 2: MouseKey(Mouse.LEFT_BUTTON),
                 3: Key(kc.END),
-                4: Key(kc.PAGE_DOWN),
-                5: Key(kc.PAGE_UP),
+                4: Key(kc.PAGE_UP),
+                5: Key(kc.PAGE_DOWN),
                 6: Key(kc.HOME),
             },
             2: {
@@ -363,6 +365,7 @@ layers = {
                 4: MouseMove(0, -10, 1.025, 1.025),
             },
             2: {
+                1: Key(kc.CAPS_LOCK),
                 3: MouseMove(-10, 0, 1.025, 1.025),
                 4: MouseMove(0, 10, 1.025, 1.025),
                 5: MouseMove(10, 0, 1.025, 1.025),
