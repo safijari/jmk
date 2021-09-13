@@ -53,6 +53,29 @@ class Key:
     def type(self):
         return "key"
 
+class MouseKey:
+    def __init__(self, kc):
+        self.kb = mouse
+        self.kc = kc  # keycode?
+
+        self.sm = StateMachine(
+            {
+                "start": StartState("Start", "key_press"),
+                "key_press": KeyPressState(
+                    "Press " + str(kc), self.kb, self.kc, "start"
+                ),
+            }
+        )
+
+    def __repr__(self):
+        return f"{self.kc}"
+
+    def update(self, val):
+        self.sm.update(val)
+
+    @property
+    def type(self):
+        return "mousekey"
 
 class MouseMove:
     def __init__(self, dx, dy, ax=1, ay=1):
@@ -73,7 +96,7 @@ class MouseMove:
 
     @property
     def type(self):
-        return "key"
+        return "mosuemove"
 
 
 class ModTap:
@@ -315,18 +338,20 @@ layers = {
         "right": {
             1: {
                 1: Key(kc.DELETE),
+                2: MouseKey(Mouse.LEFT_BUTTON),
                 3: Key(kc.END),
                 4: Key(kc.PAGE_DOWN),
                 5: Key(kc.PAGE_UP),
                 6: Key(kc.HOME),
             },
             2: {
-                2: Key(kc.QUOTE),
+                2: MouseKey(Mouse.RIGHT_BUTTON),
                 4: Key(kc.UP_ARROW),
                 5: Key(kc.DOWN_ARROW),
                 6: Key(kc.LEFT_ARROW),
             },
             3: {
+                2: MouseKey(Mouse.MIDDLE_BUTTON),
                 3: Key([kc.RIGHT_ARROW, kc.RIGHT_CONTROL]),
                 4: Key([kc.RIGHT_ARROW, kc.RIGHT_ALT]),
                 5: Key([kc.LEFT_ARROW, kc.RIGHT_ALT]),
