@@ -2,3 +2,5 @@
   Circuitpython based keyboard firmware I wrote for my skeletyl that's powered by a Raspberry Pi Pico. 
 * Keycodes
   https://github.com/adafruit/Adafruit_CircuitPython_HID/tree/main/adafruit_hid
+* What's left?
+  - [ ] Tap keys should execute immediately if a modifier is held
