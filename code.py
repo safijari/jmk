@@ -23,7 +23,7 @@ from adafruit_hid.mouse import Mouse
 
 mouse = Mouse(usb_hid.devices)
 
-uart = busio.UART(board.GP16, board.GP17, baudrate=115200)
+uart = busio.UART(board.GP16, board.GP17, baudrate=115200, receiver_buffer_size=256)
 
 keyboard = Keyboard(usb_hid.devices)
 concon = ConsumerControl(usb_hid.devices)
@@ -398,14 +398,14 @@ layers = {
         },
         "left": {
             1: {
-                4: MouseMove(0, -10, 0, 1.05, 1.05),
+                4: MouseMove(0, -13, 0, 1.05, 1.05),
                 6: Key([kc.LEFT_ALT, kc.UP_ARROW]),
             },
             2: {
                 1: Key(kc.CAPS_LOCK),
-                3: MouseMove(-10, 0, 0, 1.05, 1.05),
-                4: MouseMove(0, 10, 0, 1.05, 1.05),
-                5: MouseMove(10, 0, 0, 1.05, 1.05),
+                3: MouseMove(-13, 0, 0, 1.05, 1.05),
+                4: MouseMove(0, 13, 0, 1.05, 1.05),
+                5: MouseMove(13, 0, 0, 1.05, 1.05),
                 6: Key([kc.LEFT_ALT, kc.DOWN_ARROW]),
             },
             3: {
@@ -485,13 +485,16 @@ print("loop starting")
 counter = 0
 prev_time = time.monotonic()
 
+fails = 0
 while True:
-    gc.collect()
-    flips = {"left": set(), "right": set()}
-    # Check each pin
+    uart.reset_input_buffer()
     left_half_stuff = uart.readline()
     while len(left_half_stuff) != 25:
+        fails += 1
         left_half_stuff = uart.readline()
+    # print(fails)
+    flips = {"left": set(), "right": set()}
+    gc.collect()
     for row, (row_idx, row_name) in zip(row_pins, row_pin_map.items()):
         row.value = False
         for col, (col_idx, col_name) in zip(col_pins, col_pin_map.items()):
@@ -564,7 +567,8 @@ while True:
 
                 actual_final.sm.update(key_state)
 
-    iters = 1000
+    iters = 100
     if counter % iters == 0:
-        print(((time.monotonic() - prev_time) / iters * 1000))
+        print(((time.monotonic() - prev_time) / iters * 1000), (fails / iters))
         prev_time = time.monotonic()
+        fails = 0
