@@ -102,7 +102,7 @@ class MouseMove:
 class ModTap:
     def __init__(self, kc1, kc2):
         kb = keyboard
-        T = 0.1
+        T = 0.2
         self.sm = StateMachine(
             {
                 "start": StartState("Start", "act1wait"),
@@ -161,17 +161,17 @@ class TapDance:
                     "Act2Wait1",
                     T,
                     "act2press",
-                    "act2tapwait",
-                    success_on_permissive_hold=True,
-                ),
-                "act2tapwait": WaitState(
-                    "Act2Wait2",
-                    T,
                     "act2tap",
-                    "start",
-                    inverted=True,
                     success_on_permissive_hold=True,
                 ),
+                # "act2tapwait": WaitState(
+                #     "Act2Wait2",
+                #     T,
+                #     "act2tap",
+                #     "start",
+                #     inverted=True,
+                #     success_on_permissive_hold=True,
+                # ),
                 "act2press": KeyPressState("Act2Press", kb, kc2hold, "start"),
                 "act2tap": KeyTapState("Act2Tap", kb, kc2, "start"),
             }
@@ -282,14 +282,14 @@ layers = {
             4: {
                 4: TapDance(kc.LEFT_GUI, [kc.LEFT_GUI, kc.LEFT_SHIFT]),
                 5: "nav",
-                6: TapDance(kc.ESCAPE, kc.LEFT_ALT, kc.LEFT_CONTROL),
+                6: ModTap(kc.ESCAPE, kc.LEFT_CONTROL),
             },
         },
     },
     "numbers": {
         "right": {
             1: {
-                1: Key([kc.MINUS, kc.LEFT_SHIFT]),
+                1: Key(kc.BACKSLASH),
                 2: Key([kc.ZERO, kc.LEFT_SHIFT]),
                 3: Key([kc.NINE, kc.LEFT_SHIFT]),
                 4: Key([kc.EIGHT, kc.LEFT_SHIFT]),
@@ -318,7 +318,7 @@ layers = {
         "left": {
             2: {
                 # 1: Key(kc.MINUS),
-                1: Key(kc.CAPS_LOCK),
+                1: TapDance(kc.LEFT_SHIFT, kc.CAPS_LOCK),
                 2: Key(kc.ONE),
                 3: Key(kc.TWO),
                 4: Key(kc.THREE),
@@ -363,13 +363,15 @@ layers = {
         },
         "left": {
             1: {
-                4: MouseMove(0, -20, 1.025, 1.025),
+                4: MouseMove(0, -15, 1.05, 1.05),
+                6: Key([kc.LEFT_ALT, kc.UP_ARROW]),
             },
             2: {
                 1: Key(kc.CAPS_LOCK),
-                3: MouseMove(-20, 0, 1.025, 1.025),
-                4: MouseMove(0, 20, 1.025, 1.025),
-                5: MouseMove(20, 0, 1.025, 1.025),
+                3: MouseMove(-15, 0, 1.05, 1.05),
+                4: MouseMove(0, 15, 1.05, 1.05),
+                5: MouseMove(15, 0, 1.05, 1.05),
+                6: Key([kc.LEFT_ALT, kc.DOWN_ARROW]),
             }
         },
     },
@@ -378,18 +380,6 @@ layers = {
 layer_info = {"left": {}, "right": {}}
 
 permissive_hold_lists = {"left": [], "right": []}
-
-for side in ["left", "right"]:
-    for row_idx, row_info in layers["base"][side].items():
-        for col_idx, col_info in row_info.items():
-            if col_info in layers:
-                layer_info[side][col_info] = (row_idx, col_idx)
-                continue
-            if col_info.type in ["modtap", "tapdance"]:
-                permissive_hold_lists[side].append((row_idx, col_idx))
-
-print(layer_info)
-print(permissive_hold_lists)
 
 final = {
     "right": {
@@ -405,6 +395,20 @@ final = {
         4: {4: None, 5: None, 6: None},
     },
 }
+
+
+for side in ["left", "right"]:
+    for row_idx, row_info in layers["base"][side].items():
+        for col_idx, col_info in row_info.items():
+            final[side][row_idx][col_idx] = layers["base"][side][row_idx][col_idx]
+            if col_info in layers:
+                layer_info[side][col_info] = (row_idx, col_idx)
+                continue
+            if col_info.type in ["modtap", "tapdance"]:
+                permissive_hold_lists[side].append((row_idx, col_idx))
+
+print(layer_info)
+print(permissive_hold_lists)
 
 prev_state = {
     "right": {
@@ -446,9 +450,8 @@ while True:
     flips = {"left": set(), "right": set()}
     # Check each pin
     left_half_stuff = uart.readline()
-    if not left_half_stuff or len(left_half_stuff) != 25:
-        print("could not read left half, will retry")
-        continue
+    while len(left_half_stuff) != 25:
+        left_half_stuff = uart.readline()
     for row, (row_idx, row_name) in zip(row_pins, row_pin_map.items()):
         row.value = False
         for col, (col_idx, col_name) in zip(col_pins, col_pin_map.items()):
@@ -503,23 +506,19 @@ while True:
         le_final = final[side]
         le_layer_side = le_layer[side]
         base_layer_side = base_layer[side]
-        for row_idx, row_name in row_pin_map.items():
-            if row_idx not in le_state:
-                continue
+        for row_idx in base_layer_side:
             col_state = le_state[row_idx]
             col_final = le_final[row_idx]
             col_layer = le_layer_side.get(row_idx, {})
             col_base = base_layer_side[row_idx]
-            for col_idx, col_name in col_pin_map.items():
-                if col_idx not in col_final:
-                    continue
+            for col_idx in col_base:
                 key_state = col_state[col_idx]
                 key_final = col_final[col_idx]
                 if key_final in layer_info[side]:
                     continue
-                if key_final is None or key_final.sm.cur_state_type == "start":
+                if key_final.sm.cur_state_type == "start":
                     col_final[col_idx] = col_layer.get(
-                        col_idx, col_base.get(col_idx, None)
+                        col_idx, col_base.get(col_idx)
                     )
                 actual_final = col_final[col_idx]
                 if actual_final in layer_info[side]:
