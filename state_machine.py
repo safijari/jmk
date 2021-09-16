@@ -24,7 +24,7 @@ class StartState:
 
 
 class KeyPressState:
-    def __init__(self, name, kb, kc, next_state):
+    def __init__(self, name, kb, kc, next_state, release_without_kc=False):
         self.name = name
         self.next_state = next_state
         self.kb = kb
@@ -32,10 +32,14 @@ class KeyPressState:
         self.is_list = False
         if isinstance(kc, list):
             self.is_list = True
+        self.release_without_kc = release_without_kc
         self.reset()
         # self.release()
 
     def release(self):
+        if self.release_without_kc:
+            self.kb.release()
+            return
         if not self.is_list:
             self.kb.release(self.kc)
         else:
@@ -71,16 +75,18 @@ class KeyPressState:
             self.release()
             return smap[self.next_state]
 
+
 class MouseMoveState:
-    def __init__(self, name, mouse, dx, dy, next_state, ax=1, ay=1):
+    def __init__(self, name, mouse, dx, dy, next_state, dw=0, ax=1, ay=1):
         self.name = name
         self.next_state = next_state
         self.mouse = mouse
         self.dx = dx
         self.dy = dy
+        self.dw = dw
         self.ax = ax
         self.ay = ay
-        self.vx = self.vy = 0
+        self.vx = self.vy = self.vw = 0
         self.is_pressed = False
         self.reset()
 
@@ -91,7 +97,7 @@ class MouseMoveState:
         return "mousemove"
 
     def reset(self):
-        self.vx = self.vy = 0
+        self.vx = self.vy = self.vw = 0
 
     def into(self, smap, permissive_hold=False):
         self.reset()
@@ -102,10 +108,12 @@ class MouseMoveState:
             self.is_pressed = True
             self.vx = self.dx
             self.vy = self.dy
+            self.vw = self.dw
             retval = self
         elif inp and self.is_pressed:
             self.vx *= self.ax
             self.vy *= self.ay
+            self.vw *= 1
             retval = self
         elif not inp and not self.is_pressed:
             retval = self
@@ -116,12 +124,11 @@ class MouseMoveState:
 
         if self.is_pressed:
             try:
-                self.mouse.move(int(self.vx), int(self.vy))
+                self.mouse.move(int(self.vx), int(self.vy), int(self.vw))
             except OSError:
                 print("usb error?")
 
         return retval
-
 
 
 class KeyTapState:

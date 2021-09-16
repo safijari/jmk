@@ -12,6 +12,8 @@ from state_machine import (
 
 import usb_hid
 from adafruit_hid.keyboard import Keyboard
+from adafruit_hid.consumer_control import ConsumerControl
+from adafruit_hid.consumer_control_code import ConsumerControlCode
 from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
 from adafruit_hid.keycode import Keycode
 
@@ -24,7 +26,8 @@ mouse = Mouse(usb_hid.devices)
 uart = busio.UART(board.GP16, board.GP17, baudrate=115200)
 
 keyboard = Keyboard(usb_hid.devices)
-keyboard_layout = KeyboardLayoutUS(keyboard)  # We're in the US :)
+concon = ConsumerControl(usb_hid.devices)
+# keyboard_layout = KeyboardLayoutUS(keyboard)  # We're in the US :)
 
 # time.sleep(1)  # Sleep for a bit to avoid a race condition on some systems
 
@@ -53,6 +56,36 @@ class Key:
     def type(self):
         return "key"
 
+
+class ConsumerKey:
+    def __init__(self, kc):
+        self.kb = concon
+        self.kc = kc  # keycode?
+
+        self.sm = StateMachine(
+            {
+                "start": StartState("Start", "key_press"),
+                "key_press": KeyPressState(
+                    "Press " + str(kc),
+                    self.kb,
+                    self.kc,
+                    "start",
+                    release_without_kc=True,
+                ),
+            }
+        )
+
+    def __repr__(self):
+        return f"{self.kc}"
+
+    def update(self, val):
+        self.sm.update(val)
+
+    @property
+    def type(self):
+        return "cckey"
+
+
 class MouseKey:
     def __init__(self, kc):
         self.kb = mouse
@@ -77,13 +110,14 @@ class MouseKey:
     def type(self):
         return "mousekey"
 
+
 class MouseMove:
-    def __init__(self, dx, dy, ax=1, ay=1):
+    def __init__(self, dx, dy, dw=0, ax=1, ay=1):
         self.sm = StateMachine(
             {
                 "start": StartState("Start", "key_press"),
                 "key_press": MouseMoveState(
-                    "MouseMove", mouse, dx, dy, "start", ax, ay
+                    "MouseMove", mouse, dx, dy, "start", dw, ax, ay
                 ),
             }
         )
@@ -220,6 +254,7 @@ prev_time = time.monotonic_ns()
 
 
 kc = Keycode
+cc = ConsumerControlCode
 
 layers = {
     "base": {
@@ -341,8 +376,8 @@ layers = {
                 1: Key([kc.QUOTE, kc.RIGHT_SHIFT]),
                 2: MouseKey(Mouse.LEFT_BUTTON),
                 3: Key(kc.END),
-                4: Key(kc.PAGE_UP),
-                5: Key(kc.PAGE_DOWN),
+                4: MouseMove(0, 0, 2),
+                5: MouseMove(0, 0, -2),
                 6: Key(kc.HOME),
             },
             2: {
@@ -363,16 +398,21 @@ layers = {
         },
         "left": {
             1: {
-                4: MouseMove(0, -10, 1.05, 1.05),
+                4: MouseMove(0, -10, 0, 1.05, 1.05),
                 6: Key([kc.LEFT_ALT, kc.UP_ARROW]),
             },
             2: {
                 1: Key(kc.CAPS_LOCK),
-                3: MouseMove(-10, 0, 1.05, 1.05),
-                4: MouseMove(0, 10, 1.05, 1.05),
-                5: MouseMove(10, 0, 1.05, 1.05),
+                3: MouseMove(-10, 0, 0, 1.05, 1.05),
+                4: MouseMove(0, 10, 0, 1.05, 1.05),
+                5: MouseMove(10, 0, 0, 1.05, 1.05),
                 6: Key([kc.LEFT_ALT, kc.DOWN_ARROW]),
-            }
+            },
+            3: {
+                6: ConsumerKey(cc.VOLUME_INCREMENT),
+                5: ConsumerKey(cc.VOLUME_DECREMENT),
+                4: ConsumerKey(cc.MUTE),
+            },
         },
     },
 }
@@ -517,9 +557,7 @@ while True:
                 if key_final in layer_info[side]:
                     continue
                 if key_final.sm.cur_state_type == "start":
-                    col_final[col_idx] = col_layer.get(
-                        col_idx, col_base.get(col_idx)
-                    )
+                    col_final[col_idx] = col_layer.get(col_idx, col_base.get(col_idx))
                 actual_final = col_final[col_idx]
                 if actual_final in layer_info[side]:
                     continue
