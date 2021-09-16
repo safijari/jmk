@@ -115,7 +115,10 @@ class MouseMoveState:
             retval = smap[self.next_state]
 
         if self.is_pressed:
-            self.mouse.move(int(self.vx), int(self.vy))
+            try:
+                self.mouse.move(int(self.vx), int(self.vy))
+            except OSError:
+                print("usb error?")
 
         return retval
 

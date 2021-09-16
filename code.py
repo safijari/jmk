@@ -363,14 +363,14 @@ layers = {
         },
         "left": {
             1: {
-                4: MouseMove(0, -15, 1.05, 1.05),
+                4: MouseMove(0, -10, 1.05, 1.05),
                 6: Key([kc.LEFT_ALT, kc.UP_ARROW]),
             },
             2: {
                 1: Key(kc.CAPS_LOCK),
-                3: MouseMove(-15, 0, 1.05, 1.05),
-                4: MouseMove(0, 15, 1.05, 1.05),
-                5: MouseMove(15, 0, 1.05, 1.05),
+                3: MouseMove(-10, 0, 1.05, 1.05),
+                4: MouseMove(0, 10, 1.05, 1.05),
+                5: MouseMove(10, 0, 1.05, 1.05),
                 6: Key([kc.LEFT_ALT, kc.DOWN_ARROW]),
             }
         },
@@ -526,7 +526,7 @@ while True:
 
                 actual_final.sm.update(key_state)
 
-    iters = 50
+    iters = 1000
     if counter % iters == 0:
         print(((time.monotonic() - prev_time) / iters * 1000))
         prev_time = time.monotonic()
