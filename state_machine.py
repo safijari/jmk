@@ -65,14 +65,20 @@ class KeyPressState:
                     self.kb.press(*self.kc)
             except ValueError:
                 print("more than 6?")
+            except OSError:
+                print("os error")
             return self
         elif inp and self.is_pressed:
             return self
         elif not inp and not self.is_pressed:
             return self
         else:
-            self.is_pressed = False
-            self.release()
+            try:
+                self.release()
+                self.is_pressed = False
+            except OSError:
+                print("os error?")
+                self.update(inp, smap, permissive_hold)
             return smap[self.next_state]
 
 
