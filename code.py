@@ -256,7 +256,7 @@ prev_time = time.monotonic_ns()
 kc = Keycode
 cc = ConsumerControlCode
 
-layers = {
+layers_dict = {
     "base": {
         "right": {
             1: {
@@ -421,64 +421,31 @@ layer_info = {"left": {}, "right": {}}
 
 permissive_hold_lists = {"left": [], "right": []}
 
-final = {
-    "right": {
-        1: {1: None, 2: None, 3: None, 4: None, 5: None, 6: None,},
-        2: {1: None, 2: None, 3: None, 4: None, 5: None, 6: None,},
-        3: {1: None, 2: None, 3: None, 4: None, 5: None, 6: None,},
-        4: {4: None, 5: None, 6: None},
-    },
-    "left": {
-        1: {1: None, 2: None, 3: None, 4: None, 5: None, 6: None,},
-        2: {1: None, 2: None, 3: None, 4: None, 5: None, 6: None,},
-        3: {1: None, 2: None, 3: None, 4: None, 5: None, 6: None,},
-        4: {4: None, 5: None, 6: None},
-    },
-}
+state = {"right": [], "left": []}
+prev_state = {"right": [], "left": []}
+final = {"right": [], "left": []}
+layers = {name: {"right": [], "left": []} for name in layers_dict}
 
+for side in ["right", "left"]:
+    for row, (row_idx, row_name) in zip(row_pins, row_pin_map.items()):
+        for col, (col_idx, col_name) in zip(col_pins, col_pin_map.items()):
+            state[side].append(False)
+            prev_state[side].append(False)
+            final[side].append(None)
+            for layer in layers:
+                layers[layer][side].append(layers_dict[layer][side].get(row_idx, {}).get(col_idx, None))
 
 for side in ["left", "right"]:
-    for row_idx, row_info in layers["base"][side].items():
-        for col_idx, col_info in row_info.items():
-            final[side][row_idx][col_idx] = layers["base"][side][row_idx][col_idx]
-            if col_info in layers:
-                layer_info[side][col_info] = (row_idx, col_idx)
-                continue
-            if col_info.type in ["modtap", "tapdance"]:
-                permissive_hold_lists[side].append((row_idx, col_idx))
+    for idx, val in enumerate(layers["base"][side]):
+        final[side][idx] = val
+        if val in layers:
+            layer_info[side][val] = idx
+            continue
+        if val is not None and val.type in ["modtap", "tapdance"]:
+            permissive_hold_lists[side].append(idx)
 
 print(layer_info)
 print(permissive_hold_lists)
-
-prev_state = {
-    "right": {
-        1: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
-        2: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
-        3: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
-        4: {4: False, 5: False, 6: False},
-    },
-    "left": {
-        1: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
-        2: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
-        3: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
-        4: {4: False, 5: False, 6: False},
-    },
-}
-
-state = {
-    "right": {
-        1: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
-        2: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
-        3: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
-        4: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
-    },
-    "left": {
-        1: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
-        2: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
-        3: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
-        4: {1: False, 2: False, 3: False, 4: False, 5: False, 6: False,},
-    },
-}
 
 print("loop starting")
 
@@ -487,6 +454,8 @@ prev_time = time.monotonic()
 
 fails = 0
 while True:
+
+    # state_read_start = time.monotonic_ns()
     uart.reset_input_buffer()
     left_half_stuff = uart.readline()
     while len(left_half_stuff) != 25:
@@ -494,80 +463,86 @@ while True:
         left_half_stuff = uart.readline()
     # print(fails)
     flips = {"left": set(), "right": set()}
-    gc.collect()
+    # gc.collect()
+    idx = 0
     for row, (row_idx, row_name) in zip(row_pins, row_pin_map.items()):
         row.value = False
         for col, (col_idx, col_name) in zip(col_pins, col_pin_map.items()):
-            prev_state_val = state["right"][row_idx][col_idx]
-            prev_state["right"][row_idx][col_idx] = prev_state_val
-            cur_state_val = not col.value
-            state["right"][row_idx][col_idx] = cur_state_val
+            prev_state_val_right = state["right"][idx]
+            prev_state["right"][idx] = prev_state_val_right
+            cur_state_val_right = not col.value
+            state["right"][idx] = cur_state_val_right
+            if cur_state_val_right and not prev_state_val_right:
+                flips["right"].add(idx)
+
+            prev_state_val = state["left"][idx]
+            prev_state["left"][idx] = prev_state_val
+            cur_state_val = chr(left_half_stuff[idx]) == "1"
+            state["left"][idx] = cur_state_val
             if cur_state_val and not prev_state_val:
-                flips["right"].add((row_idx, col_idx))
+                flips["left"].add(idx)
+
+            idx += 1
         row.value = True
 
-    j = 0
-    for row, (row_idx, row_name) in zip(row_pins, row_pin_map.items()):
-        for col, (col_idx, col_name) in zip(col_pins, col_pin_map.items()):
-            prev_state_val = state["left"][row_idx][col_idx]
-            prev_state["left"][row_idx][col_idx] = prev_state_val
-            cur_state_val = chr(left_half_stuff[j]) == "1"
-            state["left"][row_idx][col_idx] = cur_state_val
-            if cur_state_val and not prev_state_val:
-                flips["left"].add((row_idx, col_idx))
-            j += 1
-
+    # state_read_end = time.monotonic_ns()
+    # print("took for matrix read", (state_read_end - state_read_start)/1000000.0)
     counter += 1
+
+    # start_flips = time.monotonic_ns()
 
     layer = "base"
 
     for side in ["left", "right"]:
-        for possible_layer, (row_idx, col_idx) in layer_info[side].items():
-            if state[side].get(row_idx, {}).get(col_idx, False):
+        for possible_layer, idx in layer_info[side].items():
+            if state[side][idx]:
                 layer = possible_layer
 
     base_layer = layers["base"]
     le_layer = layers[layer]
 
     for side in ["left", "right"]:
-        for (row, col) in permissive_hold_lists[side]:
+        for idx in permissive_hold_lists[side]:
             cond = False
             for side2 in ["left", "right"]:
                 if side2 == side:
-                    cond = len(flips[side2].difference(set([(row, col)])))
+                    cond = len(flips[side2].difference(set([idx])))
                 else:
                     cond = len(flips[side2])
                 if cond:
                     break
             if cond:
-                # print("would have permissived", side)
-                # print(row, col)
-                base_layer[side][row][col].sm.update(state[side][row][col], True)
+                base_layer[side][idx].sm.update(state[side][idx], True)
+
+    # end_flips = time.monotonic_ns()
+
+    # print("took for flips read", (end_flips - start_flips)/1000000.0)
 
     for side in ["left", "right"]:
         le_state = state[side]
         le_final = final[side]
         le_layer_side = le_layer[side]
         base_layer_side = base_layer[side]
-        for row_idx in base_layer_side:
-            col_state = le_state[row_idx]
-            col_final = le_final[row_idx]
-            col_layer = le_layer_side.get(row_idx, {})
-            col_base = base_layer_side[row_idx]
-            for col_idx in col_base:
-                key_state = col_state[col_idx]
-                key_final = col_final[col_idx]
-                if key_final in layer_info[side]:
-                    continue
-                if key_final.sm.cur_state_type == "start":
-                    col_final[col_idx] = col_layer.get(col_idx, col_base.get(col_idx))
-                actual_final = col_final[col_idx]
-                if actual_final in layer_info[side]:
-                    continue
+        layer_info_side = layer_info[side]
+        for idx, base_key in enumerate(base_layer_side):
+            key_state = le_state[idx]
+            key_final = le_final[idx]
 
-                actual_final.sm.update(key_state)
+            if key_final in layer_info_side or key_final is None:
+                continue
 
-    iters = 100
+            if key_final.sm.cur_state_type == "start":
+                if le_layer_side[idx] is not None:
+                    le_final[idx] = le_layer_side[idx]
+                else:
+                    le_final[idx] = key_final
+            actual_final = le_final[idx]
+            if actual_final in layer_info[side]:
+                continue
+
+            actual_final.sm.update(key_state)
+
+    iters = 500
     if counter % iters == 0:
         print(((time.monotonic() - prev_time) / iters * 1000), (fails / iters))
         prev_time = time.monotonic()
