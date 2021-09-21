@@ -134,9 +134,8 @@ class MouseMove:
 
 
 class ModTap:
-    def __init__(self, kc1, kc2):
+    def __init__(self, kc1, kc2, T=0.2):
         kb = keyboard
-        T = 0.2
         self.sm = StateMachine(
             {
                 "start": StartState("Start", "act1wait"),
@@ -324,7 +323,7 @@ layers_dict = {
     "numbers": {
         "right": {
             1: {
-                1: Key(kc.BACKSLASH),
+                1: ModTap(kc.BACKSLASH, [kc.LEFT_CONTROL, kc.LEFT_SHIFT, kc.BACKSLASH], T=0.3),
                 2: Key([kc.ZERO, kc.LEFT_SHIFT]),
                 3: Key([kc.NINE, kc.LEFT_SHIFT]),
                 4: Key([kc.EIGHT, kc.LEFT_SHIFT]),
@@ -398,14 +397,15 @@ layers_dict = {
         },
         "left": {
             1: {
-                4: MouseMove(0, -13, 0, 1.05, 1.05),
+                4: MouseMove(0, -10, 0, 1.05, 1.05),
                 6: Key([kc.LEFT_ALT, kc.UP_ARROW]),
             },
             2: {
-                1: Key(kc.CAPS_LOCK),
-                3: MouseMove(-13, 0, 0, 1.05, 1.05),
-                4: MouseMove(0, 13, 0, 1.05, 1.05),
-                5: MouseMove(13, 0, 0, 1.05, 1.05),
+                # 1: Key(kc.CAPS_LOCK),
+                2: Key(kc.LEFT_ALT),
+                3: MouseMove(-10, 0, 0, 1.05, 1.05),
+                4: MouseMove(0, 10, 0, 1.05, 1.05),
+                5: MouseMove(10, 0, 0, 1.05, 1.05),
                 6: Key([kc.LEFT_ALT, kc.DOWN_ARROW]),
             },
             3: {
