@@ -1,4 +1,5 @@
 import time
+verbose = False
 
 
 class StartState:
@@ -19,7 +20,8 @@ class StartState:
         if key_state == False:
             return self
         else:
-            # print("transitioning to next state from " + self.name)
+            if verbose:
+                print("transitioning to next state from " + self.name)
             return smap[self.next_state]
 
 
@@ -202,7 +204,8 @@ class WaitState:
             inp = not inp
 
         if inp and self.success_on_permissive_hold and permissive_hold:
-            # print(f"permissive hold {self.name} transitioning to success")
+            if verbose:
+                print(f"permissive hold {self.name} transitioning to success")
             return smap[self.success_state]
 
         if inp and not self.in_wait:
@@ -244,8 +247,9 @@ class StateMachine:
         next_state = self.cur_state.update(inp, self.states, permissive_hold)
 
         while next_state != self.cur_state:
-            # print(next_state)
-            # print(f"State changed to {str(next_state)}")
+            if verbose:
+                print(next_state)
+                print(f"State changed to {str(next_state)}")
             if next_state:
                 self.cur_state = next_state
                 next_state = next_state.into(self.states, permissive_hold)

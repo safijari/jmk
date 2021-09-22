@@ -21,15 +21,18 @@ import busio
 import gc
 from adafruit_hid.mouse import Mouse
 
-mouse = Mouse(usb_hid.devices)
 
 uart = busio.UART(board.GP16, board.GP17, baudrate=115200, receiver_buffer_size=256)
 
-keyboard = Keyboard(usb_hid.devices)
-concon = ConsumerControl(usb_hid.devices)
-# keyboard_layout = KeyboardLayoutUS(keyboard)  # We're in the US :)
-
-# time.sleep(1)  # Sleep for a bit to avoid a race condition on some systems
+enumerated = False
+while not enumerated:
+    try:
+        mouse = Mouse(usb_hid.devices)
+        keyboard = Keyboard(usb_hid.devices)
+        concon = ConsumerControl(usb_hid.devices)
+        enumerated = True
+    except Exception:
+        pass
 
 
 class Key:
@@ -134,8 +137,13 @@ class MouseMove:
 
 
 class ModTap:
-    def __init__(self, kc1, kc2, T=0.2):
+    def __init__(self, kc1, kc2, T=0.2, taptap=False, permissive_hold=True):
         kb = keyboard
+        act2 = (
+            KeyPressState("Act2Press", kb, kc2, "start")
+            if not taptap
+            else KeyTapState("Act2Tap", kb, kc2, "start")
+        )
         self.sm = StateMachine(
             {
                 "start": StartState("Start", "act1wait"),
@@ -144,10 +152,10 @@ class ModTap:
                     T,
                     "act2press",
                     "act1tap",
-                    success_on_permissive_hold=True,
+                    success_on_permissive_hold=permissive_hold,
                 ),
                 "act1tap": KeyTapState("Act1Tap", kb, kc1, "start"),
-                "act2press": KeyPressState("Act2Press", kb, kc2, "start"),
+                "act2press": act2,
             }
         )
 
@@ -163,10 +171,12 @@ class TapDance:
     def __init__(self, kc1, kc2, kc1hold=None, kc2hold=None):
         kb = keyboard
         self.kb = kb
+        self.kc1 = kc1
+        self.kc2 = kc2
         if kc1hold is None:
-            kc1hold = kc1
+            self.kc1hold = kc1
         if kc2hold is None:
-            kc2hold = kc2
+            self.kc2hold = kc2
 
         T = 0.1
 
@@ -188,8 +198,8 @@ class TapDance:
                     inverted=True,
                     success_on_permissive_hold=True,
                 ),
-                "act1press": KeyPressState("Act1Press", kb, kc1hold, "start"),
-                "act1tap": KeyTapState("Act1Tap", kb, kc1, "start"),
+                "act1press": KeyPressState("Act1Press", self.kb, self.kc1hold, "start"),
+                "act1tap": KeyTapState("Act1Tap", self.kb, self.kc1, "start"),
                 "act2wait": WaitState(
                     "Act2Wait1",
                     T,
@@ -205,8 +215,8 @@ class TapDance:
                 #     inverted=True,
                 #     success_on_permissive_hold=True,
                 # ),
-                "act2press": KeyPressState("Act2Press", kb, kc2hold, "start"),
-                "act2tap": KeyTapState("Act2Tap", kb, kc2, "start"),
+                "act2press": KeyPressState("Act2Press", self.kb, self.kc2hold, "start"),
+                "act2tap": KeyTapState("Act2Tap", self.kb, self.kc2, "start"),
             }
         )
 
@@ -310,6 +320,7 @@ layers_dict = {
                 2: Key(kc.Z),
                 3: Key(kc.X),
                 4: Key(kc.C),
+                # 5: ModTap(kc.V, [kc.LEFT_CONTROL, kc.V], T=0.3, taptap=True, permissive_hold=False),
                 5: Key(kc.V),
                 6: Key(kc.B),
             },
@@ -323,7 +334,9 @@ layers_dict = {
     "numbers": {
         "right": {
             1: {
-                1: ModTap(kc.BACKSLASH, [kc.LEFT_CONTROL, kc.LEFT_SHIFT, kc.BACKSLASH], T=0.3),
+                1: ModTap(
+                    kc.BACKSLASH, [kc.LEFT_CONTROL, kc.LEFT_SHIFT, kc.BACKSLASH], T=0.3
+                ),
                 2: Key([kc.ZERO, kc.LEFT_SHIFT]),
                 3: Key([kc.NINE, kc.LEFT_SHIFT]),
                 4: Key([kc.EIGHT, kc.LEFT_SHIFT]),
@@ -339,26 +352,14 @@ layers_dict = {
                 6: Key(kc.SIX),
             },
             3: {
-                # 1: Key(kc.MINUS),
                 2: Key(kc.RIGHT_BRACKET),
                 3: Key(kc.LEFT_BRACKET),
                 4: Key([kc.RIGHT_SHIFT, kc.RIGHT_BRACKET]),
                 5: Key([kc.RIGHT_SHIFT, kc.LEFT_BRACKET]),
                 6: Key(kc.SPACE),
-                # 5: Key(kc.SEVEN),
-                # 6: Key(kc.SIX),
             },
         },
         "left": {
-            2: {
-                # 1: Key(kc.MINUS),
-                1: TapDance(kc.LEFT_SHIFT, kc.CAPS_LOCK),
-                2: Key(kc.ONE),
-                3: Key(kc.TWO),
-                4: Key(kc.THREE),
-                5: Key(kc.FOUR),
-                6: Key(kc.FIVE),
-            },
             1: {
                 1: Key(kc.GRAVE_ACCENT),
                 2: Key([kc.LEFT_SHIFT, kc.ONE]),
@@ -366,6 +367,14 @@ layers_dict = {
                 4: Key([kc.LEFT_SHIFT, kc.THREE]),
                 5: Key([kc.LEFT_SHIFT, kc.FOUR]),
                 6: Key([kc.LEFT_SHIFT, kc.FIVE]),
+            },
+            2: {
+                1: TapDance(kc.LEFT_SHIFT, kc.CAPS_LOCK),
+                2: Key(kc.ONE),
+                3: Key(kc.TWO),
+                4: Key(kc.THREE),
+                5: Key(kc.FOUR),
+                6: Key(kc.FIVE),
             },
         },
     },
@@ -433,7 +442,9 @@ for side in ["right", "left"]:
             prev_state[side].append(False)
             final[side].append(None)
             for layer in layers:
-                layers[layer][side].append(layers_dict[layer][side].get(row_idx, {}).get(col_idx, None))
+                layers[layer][side].append(
+                    layers_dict[layer][side].get(row_idx, {}).get(col_idx, None)
+                )
 
 for side in ["left", "right"]:
     for idx, val in enumerate(layers["base"][side]):
