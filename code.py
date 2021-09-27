@@ -230,10 +230,10 @@ class TapDance:
 
 # The pins we'll use, each will have an internal pullup
 row_pin_map = {
-    1: board.GP14,
-    2: board.GP15,
-    3: board.GP12,
-    4: board.GP10,
+    1: board.GP10,
+    2: board.GP12,
+    3: board.GP14,
+    4: board.GP15,
 }
 col_pin_map = {
     1: board.GP4,
