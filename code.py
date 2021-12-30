@@ -417,9 +417,10 @@ layers_dict = {
                 6: Key([kc.LEFT_ALT, kc.DOWN_ARROW]),
             },
             3: {
-                6: ConsumerKey(cc.VOLUME_INCREMENT),
-                5: ConsumerKey(cc.VOLUME_DECREMENT),
-                4: ConsumerKey(cc.MUTE),
+                3: ConsumerKey(cc.PLAY_PAUSE),
+                5: ConsumerKey(cc.VOLUME_INCREMENT),
+                4: ConsumerKey(cc.VOLUME_DECREMENT),
+                6: ConsumerKey(cc.MUTE),
             },
         },
     },
