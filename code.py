@@ -402,18 +402,20 @@ layers_dict = {
                 5: Key([kc.LEFT_ARROW, kc.RIGHT_ALT]),
                 6: Key([kc.LEFT_ARROW, kc.RIGHT_CONTROL]),
             },
+            4: {
+                4: Key([kc.LEFT_GUI]),
+            }
         },
         "left": {
             1: {
-                4: MouseMove(0, -10, 0, 1.05, 1.05),
+                4: MouseMove(0, -5, 0, 1.10, 1.10),
                 6: Key([kc.LEFT_ALT, kc.UP_ARROW]),
             },
             2: {
-                # 1: Key(kc.CAPS_LOCK),
                 2: Key(kc.LEFT_ALT),
-                3: MouseMove(-10, 0, 0, 1.05, 1.05),
-                4: MouseMove(0, 10, 0, 1.05, 1.05),
-                5: MouseMove(10, 0, 0, 1.05, 1.05),
+                3: MouseMove(-5, 0, 0, 1.10, 1.10),
+                4: MouseMove(0, 5, 0, 1.10, 1.10),
+                5: MouseMove(5, 0, 0, 1.10, 1.10),
                 6: Key([kc.LEFT_ALT, kc.DOWN_ARROW]),
             },
             3: {
