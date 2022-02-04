@@ -368,7 +368,6 @@ layers_dict = {
                 6: Key([kc.LEFT_SHIFT, kc.FIVE]),
             },
             2: {
-                1: TapDance(kc.LEFT_SHIFT, kc.CAPS_LOCK),
                 2: Key(kc.ONE),
                 3: Key(kc.TWO),
                 4: Key(kc.THREE),
@@ -562,6 +561,4 @@ while True:
             prev_time = time.monotonic()
             fails = 0
     except Exception as e:
-        with open("crashlog", "w") as f:
-            sys.print_exception(e, file=f)
-        raise Exception()
+        sys.print_exception(e)
