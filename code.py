@@ -294,7 +294,7 @@ layers_dict = {
             4: {
                 4: Key(kc.SPACE),
                 5: "numbers",
-                6: TapDance(kc.RIGHT_CONTROL, [kc.RIGHT_CONTROL, kc.RIGHT_ALT]),
+                6: TapDance(kc.RIGHT_CONTROL, [kc.RIGHT_ALT]),
             },
         },
         "left": {
