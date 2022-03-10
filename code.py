@@ -8,6 +8,7 @@ from state_machine import (
     KeyPressState,
     KeyTapState,
     MouseMoveState,
+    KeySequenceState,
 )
 
 import usb_hid
@@ -46,6 +47,31 @@ class Key:
                 "start": StartState("Start", "key_press"),
                 "key_press": KeyPressState(
                     "Press " + str(kc), self.kb, self.kc, "start"
+                ),
+            }
+        )
+
+    def __repr__(self):
+        return f"{self.kc}"
+
+    def update(self, val):
+        self.sm.update(val)
+
+    @property
+    def type(self):
+        return "keyseq"
+
+
+class Sequence:
+    def __init__(self, kc_list, delay=0.1):
+        self.kb = keyboard
+        self.kc = kc_list
+
+        self.sm = StateMachine(
+            {
+                "start": StartState("Start", "key_seq"),
+                "key_seq": KeySequenceState(
+                    "Seq " + str(kc), self.kb, self.kc, "start", delay=delay
                 ),
             }
         )
@@ -395,15 +421,14 @@ layers_dict = {
                 6: Key(kc.LEFT_ARROW),
             },
             3: {
+                # 1: Sequence([kc.RETURN, kc.LEFT_ARROW, kc.MINUS, kc.RETURN], delay=0.01),
                 2: MouseKey(Mouse.MIDDLE_BUTTON),
                 3: Key([kc.RIGHT_ARROW, kc.RIGHT_CONTROL]),
                 4: Key([kc.RIGHT_ARROW, kc.RIGHT_ALT]),
                 5: Key([kc.LEFT_ARROW, kc.RIGHT_ALT]),
                 6: Key([kc.LEFT_ARROW, kc.RIGHT_CONTROL]),
             },
-            4: {
-                4: Key([kc.LEFT_GUI]),
-            }
+            4: {4: Key([kc.LEFT_GUI]),},
         },
         "left": {
             1: {

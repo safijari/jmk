@@ -1,4 +1,5 @@
 import time
+
 verbose = False
 
 
@@ -65,6 +66,66 @@ class KeyPressState:
                     self.kb.press(self.kc)
                 else:
                     self.kb.press(*self.kc)
+            except ValueError:
+                print("more than 6?")
+            except OSError:
+                print("os error")
+            return self
+        elif inp and self.is_pressed:
+            return self
+        elif not inp and not self.is_pressed:
+            return self
+        else:
+            try:
+                self.release()
+                self.is_pressed = False
+            except OSError:
+                print("os error?")
+                self.update(inp, smap, permissive_hold)
+            return smap[self.next_state]
+
+
+class KeySequenceState:
+    def __init__(
+        self, name, kb, kc_list, next_state, release_without_kc=False, delay=0.1
+    ):
+        self.name = name
+        self.next_state = next_state
+        self.kb = kb
+        self.kc = kc_list
+        self.release_without_kc = release_without_kc
+        self.delay = delay
+        self.reset()
+
+    def release(self):
+        for kc in self.kc:
+            if isinstance(kc, list):
+                self.kb.release(*kc)
+            else:
+                self.kb.release(kc)
+
+    def type(self):
+        return "keyseq"
+
+    def reset(self):
+        self.is_pressed = False
+
+    def into(self, smap, permissive_hold=False):
+        self.reset()
+        return self.update(True, smap)
+
+    def update(self, inp, smap, permissive_hold=False):
+        if inp and not self.is_pressed:
+            self.is_pressed = True
+            try:
+                for kc in self.kc:
+                    if isinstance(kc, list):
+                        self.kb.press(*kc)
+                        self.kb.release(*kc)
+                    else:
+                        self.kb.press(kc)
+                        self.kb.release(kc)
+                    time.sleep(self.delay)
             except ValueError:
                 print("more than 6?")
             except OSError:
