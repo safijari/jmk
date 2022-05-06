@@ -432,6 +432,7 @@ layers_dict = {
         },
         "left": {
             1: {
+                1: Key([kc.LEFT_SHIFT, kc.GRAVE_ACCENT]),
                 4: MouseMove(0, -5, 0, 1.10, 1.10),
                 6: Key([kc.LEFT_ALT, kc.UP_ARROW]),
             },
