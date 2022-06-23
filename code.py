@@ -195,54 +195,63 @@ class ModTap:
 
 
 class TapDance:
-    def __init__(self, kc1, kc2, kc1hold=None, kc2hold=None, T=0.2):
+    def __init__(self, kc1, kc2, kc1hold=None, kc2hold=None, T=0.2, kc3=None, kc3hold=None):
         kb = keyboard
         self.kb = kb
         self.kc1 = kc1
         self.kc2 = kc2
+        self.kc3 = kc3
         if kc1hold is None:
             self.kc1hold = kc1
         if kc2hold is None:
             self.kc2hold = kc2
+        if kc3hold is None:
+            self.kc3hold = kc3
+
+        sm = {
+            "start": StartState("Start", "act1wait"),
+
+            "act1wait": WaitState(
+                "Act1Wait1",
+                T,
+                "act1press",
+                "act1tapwait",
+                success_on_permissive_hold=True,
+            ),
+            "act1tapwait": WaitState(
+                "Act1Wait2",
+                T,
+                "act1tap",
+                "act2wait",
+                inverted=True,
+                success_on_permissive_hold=True,
+            ),
+            "act1press": KeyPressState("Act1Press", self.kb, self.kc1hold, "start"),
+            "act1tap": KeyTapState("Act1Tap", self.kb, self.kc1, "start"),
+
+            "act2wait": WaitState(
+                "Act2Wait1",
+                T,
+                "act2press",
+                "act2tapwait",
+                success_on_permissive_hold=True,
+            ),
+            "act2press": KeyPressState("Act2Press", self.kb, self.kc2hold, "start"),
+            "act2tap": KeyTapState("Act2Tap", self.kb, self.kc2, "start"),
+        }
+
+        if kc3:
+            sm["act2tapwait"] = WaitState(
+                "Act2Wait2", T, "act2tap", "act3wait", inverted=True, success_on_permissive_hold=True,
+            )
+            sm["act3wait"] = WaitState("Act3Wait1", T, "act3press", "act3tap", success_on_permissive_hold=True)
+            sm["act3press"] = KeyPressState("Act3Press", self.kb, self.kc3hold, "start")
+            sm["act3tap"] = KeyPressState("Act3Tap", self.kb, self.kc3, "start")
+            for k, v in sm.items():
+                print(k, v)
 
         self.sm = StateMachine(
-            {
-                "start": StartState("Start", "act1wait"),
-                "act1wait": WaitState(
-                    "Act1Wait1",
-                    T,
-                    "act1press",
-                    "act1tapwait",
-                    success_on_permissive_hold=True,
-                ),
-                "act1tapwait": WaitState(
-                    "Act1Wait2",
-                    T,
-                    "act1tap",
-                    "act2wait",
-                    inverted=True,
-                    success_on_permissive_hold=True,
-                ),
-                "act1press": KeyPressState("Act1Press", self.kb, self.kc1hold, "start"),
-                "act1tap": KeyTapState("Act1Tap", self.kb, self.kc1, "start"),
-                "act2wait": WaitState(
-                    "Act2Wait1",
-                    T,
-                    "act2press",
-                    "act2tap",
-                    success_on_permissive_hold=True,
-                ),
-                # "act2tapwait": WaitState(
-                #     "Act2Wait2",
-                #     T,
-                #     "act2tap",
-                #     "start",
-                #     inverted=True,
-                #     success_on_permissive_hold=True,
-                # ),
-                "act2press": KeyPressState("Act2Press", self.kb, self.kc2hold, "start"),
-                "act2tap": KeyTapState("Act2Tap", self.kb, self.kc2, "start"),
-            }
+            sm
         )
 
     @property
@@ -320,7 +329,7 @@ layers_dict = {
             4: {
                 4: Key(kc.SPACE),
                 5: "numbers",
-                6: TapDance(kc.RIGHT_CONTROL, [kc.RIGHT_ALT]),
+                6: TapDance(kc.RIGHT_CONTROL, kc.RIGHT_ALT, kc3=[kc.RIGHT_CONTROL, kc.RIGHT_ALT]),
             },
         },
         "left": {
