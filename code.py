@@ -26,6 +26,9 @@ import sys
 
 uart = busio.UART(board.GP16, board.GP17, baudrate=115200, receiver_buffer_size=256)
 
+MOUSE_MOVE_SPEED = 7
+MOUSE_MOVE_ACCEL = 1.2
+
 enumerated = False
 while not enumerated:
     try:
@@ -433,14 +436,22 @@ layers_dict = {
         "left": {
             1: {
                 1: Key([kc.LEFT_SHIFT, kc.GRAVE_ACCENT]),
-                4: MouseMove(0, -5, 0, 1.10, 1.10),
+                4: MouseMove(
+                    0, -MOUSE_MOVE_SPEED, 0, MOUSE_MOVE_ACCEL, MOUSE_MOVE_ACCEL
+                ),
                 6: Key([kc.LEFT_ALT, kc.UP_ARROW]),
             },
             2: {
                 2: Key(kc.LEFT_ALT),
-                3: MouseMove(-5, 0, 0, 1.10, 1.10),
-                4: MouseMove(0, 5, 0, 1.10, 1.10),
-                5: MouseMove(5, 0, 0, 1.10, 1.10),
+                3: MouseMove(
+                    -MOUSE_MOVE_SPEED, 0, 0, MOUSE_MOVE_ACCEL, MOUSE_MOVE_ACCEL
+                ),
+                4: MouseMove(
+                    0, MOUSE_MOVE_SPEED, 0, MOUSE_MOVE_ACCEL, MOUSE_MOVE_ACCEL
+                ),
+                5: MouseMove(
+                    MOUSE_MOVE_SPEED, 0, 0, MOUSE_MOVE_ACCEL, MOUSE_MOVE_ACCEL
+                ),
                 6: Key([kc.LEFT_ALT, kc.DOWN_ARROW]),
             },
             3: {
