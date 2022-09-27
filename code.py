@@ -28,6 +28,7 @@ uart = busio.UART(board.GP16, board.GP17, baudrate=115200, receiver_buffer_size=
 
 MOUSE_MOVE_SPEED = 7
 MOUSE_MOVE_ACCEL = 1.2
+MOUSE_SCROLL_SPEED = 3
 
 enumerated = False
 while not enumerated:
@@ -411,8 +412,8 @@ layers_dict = {
                 1: Key([kc.QUOTE, kc.RIGHT_SHIFT]),
                 2: MouseKey(Mouse.LEFT_BUTTON),
                 3: Key(kc.END),
-                4: MouseMove(0, 0, 2),
-                5: MouseMove(0, 0, -2),
+                4: MouseMove(0, 0, MOUSE_SCROLL_SPEED),
+                5: MouseMove(0, 0, -MOUSE_SCROLL_SPEED),
                 6: Key(kc.HOME),
             },
             2: {
