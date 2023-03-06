@@ -354,7 +354,7 @@ layers_dict = {
                 6: Key(kc.B),
             },
             4: {
-                4: TapDance(kc.LEFT_GUI, [kc.LEFT_GUI, kc.LEFT_SHIFT]),
+                4: Key(kc.LEFT_GUI),
                 5: "nav",
                 6: ModTap(kc.ESCAPE, kc.LEFT_CONTROL),
             },
