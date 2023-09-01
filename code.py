@@ -349,7 +349,6 @@ layers_dict = {
                 2: Key(kc.Z),
                 3: Key(kc.X),
                 4: Key(kc.C),
-                # 5: ModTap(kc.V, [kc.LEFT_CONTROL, kc.V], T=0.3, taptap=True, permissive_hold=False),
                 5: Key(kc.V),
                 6: Key(kc.B),
             },
@@ -403,6 +402,52 @@ layers_dict = {
                 4: Key(kc.THREE),
                 5: Key(kc.FOUR),
                 6: Key(kc.FIVE),
+            },
+        },
+    },
+    "both": {
+        "right": {
+            1: {
+                1: ModTap(
+                    kc.BACKSLASH, [kc.LEFT_CONTROL, kc.LEFT_SHIFT, kc.BACKSLASH], T=0.3
+                ),
+                2: Key([kc.ZERO, kc.LEFT_SHIFT]),
+                3: Key([kc.NINE, kc.LEFT_SHIFT]),
+                4: Key([kc.EIGHT, kc.LEFT_SHIFT]),
+                5: Key([kc.SEVEN, kc.LEFT_SHIFT]),
+                6: Key([kc.SIX, kc.LEFT_SHIFT]),
+            },
+            2: {
+                1: Key(kc.F11),
+                2: Key(kc.F10),
+                3: Key(kc.F9),
+                4: Key(kc.F8),
+                5: Key(kc.F7),
+                6: Key(kc.F6),
+            },
+            3: {
+                2: Key(kc.RIGHT_BRACKET),
+                3: Key(kc.LEFT_BRACKET),
+                4: Key([kc.RIGHT_SHIFT, kc.RIGHT_BRACKET]),
+                5: Key([kc.RIGHT_SHIFT, kc.LEFT_BRACKET]),
+                6: Key(kc.SPACE),
+            },
+        },
+        "left": {
+            1: {
+                1: Key(kc.GRAVE_ACCENT),
+                2: Key([kc.LEFT_SHIFT, kc.ONE]),
+                3: Key([kc.LEFT_SHIFT, kc.TWO]),
+                4: Key([kc.LEFT_SHIFT, kc.THREE]),
+                5: Key([kc.LEFT_SHIFT, kc.FOUR]),
+                6: Key([kc.LEFT_SHIFT, kc.FIVE]),
+            },
+            2: {
+                2: Key(kc.F1),
+                3: Key(kc.F2),
+                4: Key(kc.F3),
+                5: Key(kc.F4),
+                6: Key(kc.F5),
             },
         },
     },
@@ -547,7 +592,10 @@ while True:
         for side in ["left", "right"]:
             for possible_layer, idx in layer_info[side].items():
                 if state[side][idx]:
-                    layer = possible_layer
+                    if layer == "base":
+                        layer = possible_layer
+                    elif layer != "both" and layer != possible_layer:
+                        layer = "both"
 
         base_layer = layers["base"]
         le_layer = layers[layer]
