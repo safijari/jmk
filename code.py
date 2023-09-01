@@ -17,6 +17,7 @@ from adafruit_hid.consumer_control import ConsumerControl
 from adafruit_hid.consumer_control_code import ConsumerControlCode
 from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
 from adafruit_hid.keycode import Keycode
+# https://docs.circuitpython.org/projects/hid/en/latest/_modules/adafruit_hid/keycode.html
 
 import busio
 import gc
