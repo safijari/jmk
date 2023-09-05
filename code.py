@@ -308,7 +308,7 @@ layers_dict = {
             },
             2: {
                 1: Key(kc.LEFT_SHIFT),
-                2: Key(kc.SEMICOLON),
+                2: ModTap(kc.SEMICOLON, kc.LEFT_SHIFT, T=0.2, permissive_hold=True),
                 3: Key(kc.L),
                 4: Key(kc.K),
                 5: Key(kc.J),
@@ -364,7 +364,7 @@ layers_dict = {
         "right": {
             1: {
                 1: ModTap(
-                    kc.BACKSLASH, [kc.LEFT_CONTROL, kc.LEFT_SHIFT, kc.BACKSLASH], T=0.3
+                    kc.BACKSLASH, [kc.BACKSLASH, kc.RIGHT_SHIFT], T=0.2
                 ),
                 2: Key([kc.ZERO, kc.LEFT_SHIFT]),
                 3: Key([kc.NINE, kc.LEFT_SHIFT]),
@@ -409,16 +409,6 @@ layers_dict = {
     "both": {
         "right": {
             1: {
-                1: ModTap(
-                    kc.BACKSLASH, [kc.LEFT_CONTROL, kc.LEFT_SHIFT, kc.BACKSLASH], T=0.3
-                ),
-                2: Key([kc.ZERO, kc.LEFT_SHIFT]),
-                3: Key([kc.NINE, kc.LEFT_SHIFT]),
-                4: Key([kc.EIGHT, kc.LEFT_SHIFT]),
-                5: Key([kc.SEVEN, kc.LEFT_SHIFT]),
-                6: Key([kc.SIX, kc.LEFT_SHIFT]),
-            },
-            2: {
                 1: Key(kc.F11),
                 2: Key(kc.F10),
                 3: Key(kc.F9),
@@ -436,14 +426,6 @@ layers_dict = {
         },
         "left": {
             1: {
-                1: Key(kc.GRAVE_ACCENT),
-                2: Key([kc.LEFT_SHIFT, kc.ONE]),
-                3: Key([kc.LEFT_SHIFT, kc.TWO]),
-                4: Key([kc.LEFT_SHIFT, kc.THREE]),
-                5: Key([kc.LEFT_SHIFT, kc.FOUR]),
-                6: Key([kc.LEFT_SHIFT, kc.FIVE]),
-            },
-            2: {
                 2: Key(kc.F1),
                 3: Key(kc.F2),
                 4: Key(kc.F3),
@@ -471,7 +453,6 @@ layers_dict = {
                 6: Key(kc.LEFT_ARROW),
             },
             3: {
-                # 1: Sequence([kc.RETURN, kc.LEFT_ARROW, kc.MINUS, kc.RETURN], delay=0.01),
                 2: MouseKey(Mouse.MIDDLE_BUTTON),
                 3: Key([kc.RIGHT_ARROW, kc.RIGHT_CONTROL]),
                 4: Key([kc.RIGHT_ARROW, kc.RIGHT_ALT]),
@@ -613,10 +594,6 @@ while True:
                         break
                 if cond:
                     base_layer[side][idx].sm.update(state[side][idx], True)
-
-        # end_flips = time.monotonic_ns()
-
-        # print("took for flips read", (end_flips - start_flips)/1000000.0)
 
         for side in ["left", "right"]:
             le_state = state[side]
