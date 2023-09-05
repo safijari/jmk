@@ -17,6 +17,7 @@ from adafruit_hid.consumer_control import ConsumerControl
 from adafruit_hid.consumer_control_code import ConsumerControlCode
 from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
 from adafruit_hid.keycode import Keycode
+
 # https://docs.circuitpython.org/projects/hid/en/latest/_modules/adafruit_hid/keycode.html
 
 import busio
@@ -308,7 +309,7 @@ layers_dict = {
             },
             2: {
                 1: Key(kc.LEFT_SHIFT),
-                2: ModTap(kc.SEMICOLON, kc.LEFT_SHIFT, T=0.2, permissive_hold=True),
+                2: Key(kc.SEMICOLON),
                 3: Key(kc.L),
                 4: Key(kc.K),
                 5: Key(kc.J),
@@ -363,9 +364,7 @@ layers_dict = {
     "numbers": {
         "right": {
             1: {
-                1: ModTap(
-                    kc.BACKSLASH, [kc.BACKSLASH, kc.RIGHT_SHIFT], T=0.2
-                ),
+                1: ModTap(kc.BACKSLASH, [kc.BACKSLASH, kc.RIGHT_SHIFT], T=0.2),
                 2: Key([kc.ZERO, kc.LEFT_SHIFT]),
                 3: Key([kc.NINE, kc.LEFT_SHIFT]),
                 4: Key([kc.EIGHT, kc.LEFT_SHIFT]),
@@ -403,6 +402,10 @@ layers_dict = {
                 4: Key(kc.THREE),
                 5: Key(kc.FOUR),
                 6: Key(kc.FIVE),
+            },
+            3: {
+                4: Key([kc.LEFT_SHIFT, kc.LEFT_CONTROL, kc.C]),
+                5: Key([kc.LEFT_SHIFT, kc.LEFT_CONTROL, kc.V]),
             },
         },
     },
@@ -459,7 +462,9 @@ layers_dict = {
                 5: Key([kc.LEFT_ARROW, kc.RIGHT_ALT]),
                 6: Key([kc.LEFT_ARROW, kc.RIGHT_CONTROL]),
             },
-            4: {4: Key([kc.LEFT_GUI]),},
+            4: {
+                4: Key([kc.LEFT_GUI]),
+            },
         },
         "left": {
             1: {
@@ -483,11 +488,13 @@ layers_dict = {
                 6: Key([kc.LEFT_ALT, kc.DOWN_ARROW]),
             },
             3: {
-                2: ConsumerKey(cc.SCAN_NEXT_TRACK),
-                3: ConsumerKey(cc.PLAY_PAUSE),
-                5: ConsumerKey(cc.VOLUME_INCREMENT),
-                4: ConsumerKey(cc.VOLUME_DECREMENT),
-                6: ConsumerKey(cc.MUTE),
+                # 2: ConsumerKey(cc.SCAN_NEXT_TRACK),
+                # 3: ConsumerKey(cc.PLAY_PAUSE),
+                # 5: ConsumerKey(cc.VOLUME_INCREMENT),
+                # 4: ConsumerKey(cc.VOLUME_DECREMENT),
+                # 6: ConsumerKey(cc.MUTE),
+                4: Key([kc.LEFT_CONTROL, kc.LEFT_SHIFT, kc.TAB]),
+                5: Key([kc.LEFT_CONTROL, kc.TAB]),
             },
         },
     },
