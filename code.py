@@ -435,6 +435,12 @@ layers_dict = {
                 5: Key(kc.F4),
                 6: Key(kc.F5),
             },
+            3: {
+                3: Sequence([[kc.LEFT_CONTROL, kc.B], [kc.LEFT_CONTROL, kc.B], kc.P], delay=0.01),
+                4: Sequence([[kc.LEFT_CONTROL, kc.B], kc.P], delay=0.01),
+                5: Sequence([[kc.LEFT_CONTROL, kc.B], kc.N], delay=0.01),
+                6: Sequence([[kc.LEFT_CONTROL, kc.B], [kc.LEFT_CONTROL, kc.B], kc.N], delay=0.01),
+            }
         },
     },
     "nav": {
