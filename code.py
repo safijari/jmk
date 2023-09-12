@@ -419,6 +419,13 @@ layers_dict = {
                 5: Key(kc.F7),
                 6: Key(kc.F6),
             },
+            2: {
+                2: ConsumerKey(cc.SCAN_NEXT_TRACK),
+                3: ConsumerKey(cc.PLAY_PAUSE),
+                4: ConsumerKey(cc.VOLUME_INCREMENT),
+                5: ConsumerKey(cc.VOLUME_DECREMENT),
+                6: ConsumerKey(cc.MUTE),
+            },
             3: {
                 2: Key(kc.RIGHT_BRACKET),
                 3: Key(kc.LEFT_BRACKET),
@@ -494,11 +501,6 @@ layers_dict = {
                 6: Key([kc.LEFT_ALT, kc.DOWN_ARROW]),
             },
             3: {
-                # 2: ConsumerKey(cc.SCAN_NEXT_TRACK),
-                # 3: ConsumerKey(cc.PLAY_PAUSE),
-                # 5: ConsumerKey(cc.VOLUME_INCREMENT),
-                # 4: ConsumerKey(cc.VOLUME_DECREMENT),
-                # 6: ConsumerKey(cc.MUTE),
                 4: Key([kc.LEFT_CONTROL, kc.LEFT_SHIFT, kc.TAB]),
                 5: Key([kc.LEFT_CONTROL, kc.TAB]),
             },
