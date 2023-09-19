@@ -482,6 +482,7 @@ layers_dict = {
         "left": {
             1: {
                 1: Key([kc.LEFT_SHIFT, kc.GRAVE_ACCENT]),
+                3: ModTap([kc.LEFT_CONTROL, kc.W], [kc.LEFT_CONTROL, kc.LEFT_SHIFT, kc.T], T=0.1),
                 4: MouseMove(
                     0, -MOUSE_MOVE_SPEED, 0, MOUSE_MOVE_ACCEL, MOUSE_MOVE_ACCEL
                 ),
