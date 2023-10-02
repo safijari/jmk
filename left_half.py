@@ -9,7 +9,7 @@ led.direction = digitalio.Direction.OUTPUT
 
 led.value = True
 
-uart = busio.UART(board.GP4, board.GP5, baudrate=115200)
+uart = busio.UART(board.GP01, board.GP13, baudrate=115200)
 
 ctr = 0
 start = time.monotonic()
@@ -24,16 +24,16 @@ import struct
 row_pin_map = {
     3: board.GP14,
     4: board.GP15,
-    2: board.GP11,
+    2: board.GP6,
     1: board.GP8,
 }
 col_pin_map = {
     6: board.GP16,
     5: board.GP17,
-    3: board.GP18,
-    2: board.GP19,
-    1: board.GP22,
-    4: board.GP26,
+    3: board.GP28,
+    2: board.GP21,
+    1: board.GP20,
+    4: board.GP27,
 }
 
 row_pins = []
@@ -55,7 +55,8 @@ counter = 0
 prev_time = time.monotonic()
 
 
-arr = ["0"]*(len(row_pins)*len(col_pins))
+arr = [b"0"]*(len(row_pins)*len(col_pins))
+arr.append(b"\n")
 
 print(len(arr))
 
@@ -68,7 +69,6 @@ while True:
             out = not col.value
             if out:
                 arr[i] = b"1"
-                print(row_name, col_name)
             else:
                 arr[i] = b"0"
 
@@ -77,10 +77,12 @@ while True:
 
         row.value = True
     to_write = b"".join(arr)
-    #print(to_write)
-    uart.write(to_write)
+    print(to_write)
+    oot = uart.write(to_write)
 
     ctr += 1
-    if ctr % 1000 == 0:
+    if ctr % 100 == 0:
         print(time.monotonic() - start)
         start = time.monotonic()
+        
+    #time.sleep(23/1000)

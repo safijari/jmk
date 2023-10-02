@@ -552,10 +552,12 @@ while True:
         # state_read_start = time.monotonic_ns()
         uart.reset_input_buffer()
         left_half_stuff = uart.readline()
+        # print(left_half_stuff)
         while len(left_half_stuff) != 25:
             fails += 1
             left_half_stuff = uart.readline()
         # print(fails)
+        print(left_half_stuff)
         flips = {"left": set(), "right": set()}
         # gc.collect()
         idx = 0
@@ -641,4 +643,4 @@ while True:
             prev_time = time.monotonic()
             fails = 0
     except Exception as e:
-        sys.print_exception(e)
+        print(e)
